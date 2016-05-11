@@ -14,7 +14,6 @@ def extractFeature(img):
     # convert to hsv        
     img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     # reshape the image to be a list of pixels
-
     img = img.reshape((img.shape[0] * img.shape[1], 3))
 
     h = np.asscalar(stats.mode(img[:, 0])[0])
