@@ -18,7 +18,8 @@ def run_extractor(cur, name, function, img):
     # SQLite doesn't have an alter table??
 
     # TODO: write this so that if the function returns 
-    # a list of features, it adds multiple columns 
+    # a list of features, it adds multiple columns
+
     function(img)
     pass
 
