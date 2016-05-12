@@ -8,7 +8,7 @@ import cv2
 import imutils
 
 def getFeatureName():
-    return ["Value Contrast", "Color Contrast"]
+    return ["Value_Contrast", "Color_Contrast"]
 
 
 def extractFeature(img):

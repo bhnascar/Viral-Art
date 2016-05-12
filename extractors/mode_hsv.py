@@ -7,7 +7,7 @@ import numpy as np
 from scipy import stats
 
 def getFeatureName():
-    return ["Mode Hue", "Mode Saturation", "Mode Value"]
+    return ["Mode_Hue", "Mode_Saturation", "Mode_Value"]
 
 def extractFeature(img):
     # Get dominant color scheme via k-means

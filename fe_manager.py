@@ -1,11 +1,19 @@
 #!/usr/bin/env python
 
 import sys
+import cv2
 import sqlite3
 import extractors
+import urllib
 
 # Name of sqlite database file holding our image features
 DB_FILENAME = "features.db"
+
+# Name of temp file for saving download images.
+TMP_IMG_FILENAME = "workspace/temp.tmp"
+
+# Default output file for features.
+DEFAULT_OUTPUT_FILE = "workspace/features.txt"
 
 def run_extractor(cur, name, function, img):
     """
@@ -14,13 +22,8 @@ def run_extractor(cur, name, function, img):
     not yet create in the database, it is created now. The result is
     then stored in the image's row, at that column.
     """
-    # TODO: Some kind of ALTER TABLE call to add the column
-    # SQLite doesn't have an alter table??
-
-    # TODO: write this so that if the function returns 
-    # a list of features, it adds multiple columns 
-    function(img)
-    pass
+    # TODO: insert result into the correct database column
+    print function(img)
 
 def run_extractors(cur, img):
     """
@@ -34,7 +37,8 @@ def get_image_data(url):
     """
     Fetches an image's actual (RGB) data, given its URL.
     """
-    pass
+    urllib.urlretrieve(url, TMP_IMG_FILENAME)
+    return cv2.imread(TMP_IMG_FILENAME)
 
 def update_images(cur):
     """
@@ -48,6 +52,17 @@ def update_images(cur):
         img = get_image_data(url);
         run_extractors(img)
 
+def dump_features(cur, outputfile = DEFAULT_OUTPUT_FILE):
+    """
+    Reads features for every image out of the features database and
+    writes it to a CSV file where each row corresponds to a single
+    feature vector.
+    """
+    cur.execute("SELECT * FROM features")
+    with open(outputfile, "a") as output:
+        for row in rows:
+            output.write(",".join(map(str, row[2:]))
+
 def connect_to_db(filename):
     """
     Connects to a sqlite3 database stored at the given filename.
@@ -56,6 +71,19 @@ def connect_to_db(filename):
     conn = sqlite3.connect(filename)
     cur = conn.cursor()
     return conn, cur
+
+def validate_db_structure(cur):
+    """
+    Validates that all the 'features' table exists in the database.
+    Validates that the required feature columns exist in the
+    features table. Creates any columnsthat are missing.
+    """
+    cur.execute("CREATE TABLE IF NOT EXISTS features (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT);");
+    cur.execute("PRAGMA table_info(features)")
+    rows = cur.fetchall()
+    for name in extractor.names
+        if name not in rows:
+            cur.execute("AlTER TABLE features ADD COLUMN " + name + " TEXT;")
 
 def main(args):
     """
@@ -67,9 +95,11 @@ def main(args):
         print "Usage: ./fe_manager.py"
         return
 
+    # Connect to DB and validate its structure.
     conn, cur = connect_to_db(DB_FILENAME)
-    cur.execute("CREATE TABLE IF NOT EXISTS features (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT);");
+    validate_db_structure(cur)
 
+    # Update images.
     update_images(cur)
 
 if __name__ == "__main__":

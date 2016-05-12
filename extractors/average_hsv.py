@@ -6,7 +6,7 @@ import imutils
 import numpy as np
 
 def getFeatureName():
-    return ["Average Hue", "Average Saturation", "Average Value"]
+    return ["Average_Hue", "Average_Saturation", "Average_Value"]
 
 def extractFeature(img):
     # Get dominant color scheme via k-means

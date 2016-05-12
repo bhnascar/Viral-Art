@@ -8,13 +8,12 @@ import numpy as np
 
 
 def getFeatureName():
-    return ["Average Hue Roughness",
-            "Average Saturation Roughness",
-            "Average Value Roughness"]
+    return ["Average_Hue_Roughness",
+            "Average_Saturation_Roughness",
+            "Average_Value_Roughness"]
 
 
 def extractFeature(img):
-    # Get dominant color scheme via k-means
     # convert to hsv
     img = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     # get the gradients
