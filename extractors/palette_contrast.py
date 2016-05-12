@@ -51,6 +51,7 @@ def extractFeature(img):
     # value contrast, color contrast
     return [max_val - min_val, max_hue - min_hue]
 
+'''debugging functions'''
 def centroid_histogram(clt):
     # grab the number of different clusters and create a histogram
     # based on the number of pixels assigned to each cluster
