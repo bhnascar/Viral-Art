@@ -31,7 +31,7 @@ def run_extractors(cur, img):
     image's row in the database.
     """
     for name, function in zip(extractors.names, extractors.functions):
-        run_extractor(name, function, img)
+        run_extractor(cur, name, function, img)
 
 def get_image_data(url):
     """
@@ -50,7 +50,7 @@ def update_images(cur):
     for row in rows:
         url = row[0]
         img = get_image_data(url);
-        run_extractors(img)
+        run_extractors(cur, img)
 
 def dump_features(cur, outputfile = DEFAULT_OUTPUT_FILE):
     """
@@ -61,7 +61,7 @@ def dump_features(cur, outputfile = DEFAULT_OUTPUT_FILE):
     cur.execute("SELECT * FROM features")
     with open(outputfile, "a") as output:
         for row in rows:
-            output.write(",".join(map(str, row[2:]))
+            output.write(",".join(map(str, row[2:])))
 
 def connect_to_db(filename):
     """
@@ -81,9 +81,10 @@ def validate_db_structure(cur):
     cur.execute("CREATE TABLE IF NOT EXISTS features (id INTEGER PRIMARY KEY AUTOINCREMENT, url TEXT);");
     cur.execute("PRAGMA table_info(features)")
     rows = cur.fetchall()
-    for name in extractor.names
-        if name not in rows:
-            cur.execute("AlTER TABLE features ADD COLUMN " + name + " TEXT;")
+    column_names = [row[1] for row in rows]
+    for feature_name in extractors.names:
+        if feature_name() not in column_names:
+            cur.execute("AlTER TABLE features ADD COLUMN ? TEXT;", feature_name())
 
 def main(args):
     """
@@ -97,7 +98,7 @@ def main(args):
 
     # Connect to DB and validate its structure.
     conn, cur = connect_to_db(DB_FILENAME)
-    validate_db_structure(cur)
+    # validate_db_structure(cur)
 
     # Update images.
     update_images(cur)

@@ -23,7 +23,10 @@ def extractFeature(img):
 
     return [np.mean(h_grad), np.mean(s_grad), np.mean(v_grad)]
 
-cv_image = cv2.imread("test_data/strider.jpg")
-cv_image = imutils.resize(cv_image, width=200)
+def main():
+    cv_image = cv2.imread("test_data/strider.jpg")
+    cv_image = imutils.resize(cv_image, width=200)
+    print extractFeature(cv_image)
 
-print extractFeature(cv_image)
+if __name__ == "__main__":
+    main()

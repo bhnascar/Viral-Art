@@ -22,7 +22,10 @@ def extractFeature(img):
 
     return [h, s, v]
 
-cv_image = cv2.imread("test_data/wonder_woman.jpg")
-cv_image = imutils.resize(cv_image, width=200)
+def main():
+    cv_image = cv2.imread("test_data/wonder_woman.jpg")
+    cv_image = imutils.resize(cv_image, width=200)
+    print extractFeature(cv_image)
 
-print extractFeature(cv_image)
+if __name__ == "__main__":
+    main()
