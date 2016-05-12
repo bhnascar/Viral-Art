@@ -2,19 +2,22 @@ import average_hsv
 import avg_roughness
 import color_palette_feature
 import palette_contrast
+import face
 
 functions = [
 	average_hsv.extractFeature,
 	avg_roughness.extractFeature,
 	color_palette_feature.extractFeature,
-	palette_contrast.extractFeature
+	palette_contrast.extractFeature,
+	face.extractFeature
 ]
 
 names = [
 	average_hsv.getFeatureName,
 	avg_roughness.getFeatureName,
 	color_palette_feature.getFeatureName,
-	palette_contrast.getFeatureName
+	palette_contrast.getFeatureName,
+	face.getFeatureName
 ]
 
 # The clever way of doing this is not working yet... #
