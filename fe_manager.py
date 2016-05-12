@@ -29,6 +29,7 @@ def run_extractor(cur, name, function, img):
     # a list of features, it adds multiple columns
 
     # TODO: insert result into the correct database column
+    print name()
     print function(img)
     pass
 
@@ -44,6 +45,7 @@ def get_image_data(url):
     """
     Fetches an image's actual (RGB) data, given its URL.
     """
+    print url
     urllib.urlretrieve(url, TMP_IMG_FILENAME)
     return cv2.imread(TMP_IMG_FILENAME)
 
