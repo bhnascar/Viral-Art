@@ -7,7 +7,7 @@ import numpy as np
 from scipy import stats
 
 def getFeatureName():
-    return ["Mode Hue", "Mode Saturation", "Mode Value"]
+    return ["Mode_Hue", "Mode_Saturation", "Mode_Value"]
 
 def extractFeature(img):
     # Get dominant color scheme via k-means
@@ -22,7 +22,10 @@ def extractFeature(img):
 
     return [h, s, v]
 
-cv_image = cv2.imread("test_data/wonder_woman.jpg")
-cv_image = imutils.resize(cv_image, width=200)
+def main():
+    cv_image = cv2.imread("test_data/wonder_woman.jpg")
+    cv_image = imutils.resize(cv_image, width=200)
+    print extractFeature(cv_image)
 
-print extractFeature(cv_image)
+if __name__ == "__main__":
+    main()

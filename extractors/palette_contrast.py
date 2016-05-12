@@ -8,7 +8,7 @@ import cv2
 import imutils
 
 def getFeatureName():
-    return ["Value Contrast", "Color Contrast"]
+    return ["Value_Contrast", "Color_Contrast"]
 
 
 def extractFeature(img):
@@ -82,14 +82,17 @@ def plot_colors(hist, centroids):
     # return the bar chart
     return bar
 
-cv_image = cv2.imread("test_data/wlop.jpg")
-cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
-cv_image = imutils.resize(cv_image, width=200)
+def main():
+    cv_image = cv2.imread("test_data/wlop.jpg")
+    cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+    cv_image = imutils.resize(cv_image, width=200)
 
-# plt.figure()
-# plt.axis("off")
-# plt.imshow(cv_image)
+    # plt.figure()
+    # plt.axis("off")
+    # plt.imshow(cv_image)
 
-cv_image = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
+    cv_image = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
+    print extractFeature(cv_image)
 
-print extractFeature(cv_image)
+if __name__ == "__main__":
+    main()
