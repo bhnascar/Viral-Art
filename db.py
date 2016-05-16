@@ -27,11 +27,14 @@ def validate_columns(cur):
     column_names = [row[1] for row in rows]
     for feature_name_fn in extractors.names:
         feature_name = feature_name_fn()
+
+        # Single feature
         if isinstance(feature_name, basestring):
             if feature_name not in column_names:
                 cur.execute("AlTER TABLE features ADD COLUMN {} TEXT".format(feature_name))
+        
+        # Several related features, ex. hue roughness, saturation roughness, etc.
         elif isinstance(feature_name, list):
-            # Several related features, ex. hue roughness, saturation roughness, etc.
             for sub_feature_name in feature_name:
                 if sub_feature_name not in column_names:
                     cur.execute("AlTER TABLE features ADD COLUMN {} TEXT;".format(sub_feature_name))

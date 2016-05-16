@@ -11,29 +11,48 @@ import extractors
 # Name of temp file for saving download images.
 WORKSPACE_PATH = "workspace/"
 
-def run_extractor(conn, cur, name, function, img, imgID):
+def run_extractor(conn, cur, name_fn, feature_fn, img, imgID, filters):
     """
     Runs the extractor with the given feature name and the given 
     extraction function on the given image. Saves the result to
     the database.
     """
-    names = name() 
-    print "Running extractors for {}".format(names)
-    features = function(img)
+    names = name_fn()
+
+    # Handle single features
     if isinstance(names, basestring):
+        if filters and names not in filters:
+            return
+        
+        print "Running extractor for {}".format(names)
+        features = feature_fn(img)
+        if features == None:
+            features = "null"
         cur.execute("UPDATE features SET {} = {} WHERE id = {}".format(names, features, imgID))
+    
+    # Handle group of related features
     elif isinstance(names, list):
-        for name, feature in zip(names, features):
+        if filters:
+            found = sum(1 for name in names if name in filters)
+            if found == 0:
+                return
+
+        print "Running extractors for {}".format(names)
+        features = feature_fn(img)
+        for (name, feature) in zip(names, features):
+            if feature == None:
+                feature = "null"
             cur.execute("UPDATE features SET {} = {} WHERE id = {}".format(name, feature, imgID))
+    
     conn.commit()
 
-def run_extractors(conn, cur, img, imgID):
+def run_extractors(conn, cur, img, imgID, filters):
     """
     Runs all feature extractors on the given image, and updates the
     image's row in the database.
     """
-    for name, function in zip(extractors.names, extractors.functions):
-        run_extractor(conn, cur, name, function, img, imgID)
+    for name_fn, feature_fn in zip(extractors.names, extractors.functions):
+        run_extractor(conn, cur, name_fn, feature_fn, img, imgID, filters)
 
 def get_image_data(url):
     """
@@ -41,12 +60,11 @@ def get_image_data(url):
     """
     img_name_index = url.rfind("/")
     img_name = url[img_name_index + 1:]
-    print "Processing {}...".format(img_name)
     if not os.path.isfile(WORKSPACE_PATH + img_name):
         urllib.urlretrieve(url, WORKSPACE_PATH + img_name)
     return cv2.imread(WORKSPACE_PATH + img_name)
 
-def update_images(conn, cur):
+def update_images(conn, cur, filters = None):
     """
     Walks through each image in the database and recalculates all of
     its features.
@@ -57,7 +75,8 @@ def update_images(conn, cur):
         imgID = row[0]
         url = row[1]
         img = get_image_data(url);
-        run_extractors(conn, cur, img, imgID)
+        print "Processing {}...".format(url)
+        run_extractors(conn, cur, img, imgID, filters)
 
 def main(args):
     """
@@ -74,7 +93,11 @@ def main(args):
         return
 
     conn, cur = db.connect()
-    update_images(conn, cur)
+
+    if len(args) == 2:
+        update_images(conn, cur, args[1])
+    else:
+        update_images(conn, cur)
 
 if __name__ == "__main__":
     main(sys.argv)
