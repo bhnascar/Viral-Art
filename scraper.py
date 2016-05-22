@@ -101,11 +101,13 @@ def scrape_results_page(page_html):
     """
     sp = BeautifulSoup(page_html, "html.parser")
     img_pages = sp.find_all("a", "thumb")
+    imgs = []
     for link in img_pages:
         page_url = link.get("href")
         img_page_html = get_page_html(page_url)
         if (img_page_html != None):
-            scrape_img_page(img_page_html)
+            imgs.append(scrape_img_page(img_page_html))
+    return imgs
 
 def main(args):
     if len(args) == 2 and args[1] == 'help':
