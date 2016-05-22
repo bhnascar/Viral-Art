@@ -7,6 +7,7 @@ DB_FILENAME = "features.db"
 
 # Core columns (i.e. columns not from image features)
 CORE_COLUMNS = [
+    "base_url",
     "url",
     "views",
     "favorites",
@@ -20,6 +21,7 @@ def validate_tables(cur):
     cur.execute("""
                 CREATE TABLE IF NOT EXISTS 
                 features (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                          {} TEXT,
                           {} TEXT,
                           {} TEXT, 
                           {} TEXT,
