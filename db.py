@@ -5,6 +5,14 @@ import extractors
 # Name of sqlite database file holding our image features
 DB_FILENAME = "features.db"
 
+# Core columns (i.e. columns not from image features)
+CORE_COLUMNS = [
+    "url",
+    "views",
+    "favorites",
+    "medium"
+]
+
 def validate_tables(cur):
     """
     Validates that the 'features' table exists in the database.
@@ -12,19 +20,29 @@ def validate_tables(cur):
     cur.execute("""
                 CREATE TABLE IF NOT EXISTS 
                 features (id INTEGER PRIMARY KEY AUTOINCREMENT,
-                          url TEXT,
-                          views TEXT, 
-                          favorites TEXT);
-                """);
+                          {} TEXT,
+                          {} TEXT, 
+                          {} TEXT,
+                          {} TEXT);
+                """.format(*CORE_COLUMNS));
 
 def validate_columns(cur):
     """
-    Validates that the required feature columns exist in the
-    features table. Creates any columnsthat are missing.
+    Validates that the core columns exist in the features table.
+    Validates that the required img feature columns exist in the
+    features table. Creates any columns that are missing.
     """
+    # Get current column names
     cur.execute("PRAGMA table_info(features)")
     rows = cur.fetchall()
     column_names = [row[1] for row in rows]
+
+    # Validate core columns
+    for column_name in CORE_COLUMNS:
+        if column_name not in column_names:
+            cur.execute("AlTER TABLE features ADD COLUMN {} TEXT".format(column_name))
+
+    # Validate feature columns
     for feature_name_fn in extractors.names:
         feature_name = feature_name_fn()
 
