@@ -229,7 +229,7 @@ def extractFeature(img):
 
 
 def main():
-    cv_image = cv2.imread("test_data/wonder_woman.jpg")
+    cv_image = cv2.imread("test_data/bond.jpg")
     # cv_image = imutils.resize(cv_image, width=200)
 
     print extractFeature(cv_image)
