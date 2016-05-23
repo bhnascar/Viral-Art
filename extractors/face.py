@@ -18,8 +18,9 @@ or the other Haar Cascades
 import cv2
 import util
 import imutils
+import numpy as np
 
-IS_DEBUG = False
+IS_DEBUG = True
 NUM_LOC_BINS = 5
 
 
@@ -64,6 +65,7 @@ def getSmileFeatures(fx, fy, fw, fh, img, gray):
 
 
 def removeExtraneousEyes(eyes, fx, fy, fw, fh):
+    print len(eyes)
     ''' remove any eyes not in the face '''
     to_remove = []
     for index, val in enumerate(eyes):
@@ -72,9 +74,9 @@ def removeExtraneousEyes(eyes, fx, fy, fw, fh):
            (ex + ew > fx + fw) or (ey + eh > fy + fh)):
             to_remove.append(index)
 
-    for i in to_remove:
-        # bug here?
-        eyes.pop(i)
+    mask = np.ones(len(eyes), dtype=bool)
+    mask[to_remove] = False
+    eyes = eyes[mask]
 
     return eyes[:2]
 
@@ -229,7 +231,7 @@ def extractFeature(img):
 
 
 def main():
-    cv_image = cv2.imread("test_data/bond.jpg")
+    cv_image = cv2.imread("test_data/rey.png")
     # cv_image = imutils.resize(cv_image, width=200)
 
     print extractFeature(cv_image)

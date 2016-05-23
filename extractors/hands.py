@@ -1,8 +1,8 @@
 """
 Returns
-    - torso exists
+    - hands exists
     - where it is located
-    - how big the torso is w.r.t. the entire image
+    - how big it is w.r.t. the entire image
 
 Only works for realistic drawings right now.
 TODO: look into training a Haar cascade for more cartoony styles
@@ -11,14 +11,14 @@ import cv2
 import util
 import imutils
 
-IS_DEBUG = False
+IS_DEBUG = True
 NUM_LOC_BINS = 5
 
 
 def getFeatureName():
-    return ["torso_exists", "torso_size"] + \
-        util.binLocFeatureNames("torso_x", NUM_LOC_BINS) + \
-        util.binLocFeatureNames("torso_y", NUM_LOC_BINS)
+    return ["hands_exists", "hands_size"] + \
+        util.binLocFeatureNames("hands_x", NUM_LOC_BINS) + \
+        util.binLocFeatureNames("hands_y", NUM_LOC_BINS)
 
 
 def extractFeature(img):
@@ -27,15 +27,15 @@ def extractFeature(img):
     # convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-    # find torso
-    torso_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_headshoulders.xml')
+    # find hands
+    hands_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_hand.xml')
 
     # for debugging
     if IS_DEBUG:
-        torso_cascade = cv2.CascadeClassifier('cascades/haarcascade_headshoulders.xml')
+        hands_cascade = cv2.CascadeClassifier('cascades/haarcascade_hand.xml')
 
     # Check if it's a frontal face first
-    torso = torso_cascade.detectMultiScale(
+    hands = hands_cascade.detectMultiScale(
         gray,
         scaleFactor=1.3,
         minNeighbors=5,
@@ -44,28 +44,28 @@ def extractFeature(img):
         )
 
     # return none if there are no faces
-    if len(torso) == 0:
+    if len(hands) == 0:
         return [None] * len(getFeatureName())
 
     # we only want one per image, so take the first one always
-    (x, y, w, h) = torso[0]
+    (x, y, w, h) = hands[0]
 
-    # torso size, as percentage of image
-    torso_size = float(w * h) / (img_h * img_w)
+    # hands size, as percentage of image
+    hands_size = float(w * h) / (img_h * img_w)
 
-    # torso location, as percentage
-    torso_loc_x = [0] * NUM_LOC_BINS
-    torso_loc_y = [0] * NUM_LOC_BINS
-    torso_loc_x[util.getLocBinIndex(float(x + float(w) / 2) / img_w,
+    # hands location, as percentage
+    hands_loc_x = [0] * NUM_LOC_BINS
+    hands_loc_y = [0] * NUM_LOC_BINS
+    hands_loc_x[util.getLocBinIndex(float(x + float(w) / 2) / img_w,
                                     NUM_LOC_BINS)] = 1
-    torso_loc_y[util.getLocBinIndex(float(y + float(h) / 2) / img_h,
+    hands_loc_y[util.getLocBinIndex(float(y + float(h) / 2) / img_h,
                                     NUM_LOC_BINS)] = 1
 
     # ready the features for returning
-    features = [1, torso_size] + torso_loc_x + torso_loc_y
+    features = [1, hands_size] + hands_loc_x + hands_loc_y
 
     assert len(features) == len(getFeatureName()), \
-    "length of features matches feature names"
+        "length of features matches feature names"
 
     '''Display and debug'''
     if IS_DEBUG:
@@ -79,7 +79,7 @@ def extractFeature(img):
 
 
 def main():
-    cv_image = cv2.imread("test_data/rey.png")
+    cv_image = cv2.imread("test_data/bond.jpg")
     # cv_image = imutils.resize(cv_image, width=200)
 
     print extractFeature(cv_image)
