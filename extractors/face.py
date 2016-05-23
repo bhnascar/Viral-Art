@@ -9,26 +9,62 @@ Returns
     - where the eyes are located
     - how big the eyes are in comparison to the face
 
+    - if they are smiling
+
 Only works for realistic faces right now.
 TODO: look into training a Haar cascade for more cartoony faces,
 or the other Haar Cascades
 """
 import cv2
+import util
 import imutils
 
 IS_DEBUG = False
+NUM_LOC_BINS = 5
+
+
+def getEyeFeatureNames():
+    return ["eye_size", "number_of_visible_eyes"] + \
+        util.binLocFeatureNames("eye_x_in_img", NUM_LOC_BINS) + \
+        util.binLocFeatureNames("eye_y_in_img", NUM_LOC_BINS)
+
+
+def getFaceFeatureNames():
+    return ["is_frontal_face", "is_profile_face", "face_size"] + \
+        util.binLocFeatureNames("face_x", NUM_LOC_BINS) + \
+        util.binLocFeatureNames("face_y", NUM_LOC_BINS)
+
+
+def getSmileFeatureNames():
+    return []
+    # return ["there_is_a_smile"]
 
 
 def getFeatureName():
-    return ["frontal_face", "profile_face", "face_x", "face_y", "face_size",
-            "eye_size", "number_of_visible_eyes",
-            "eye_x_in_face", "eye_y_in_face", "eye_x_in_img", "eye_y_in_img"]
-
-# def getSmileFeatures(fx, fy, fw, fh, img, gray_img):
+    return getFaceFeatureNames() + getEyeFeatureNames() + \
+        getSmileFeatureNames()
 
 
-def removeExtraneousEyes(eyes, fx, fy, fw, fh):    
-    # remove any eyes not in the face
+def getSmileFeatures(fx, fy, fw, fh, img, gray):
+    smile_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_smile.xml')
+
+    # for debugging
+    if IS_DEBUG:
+        smile_cascade = cv2.CascadeClassifier('cascades/haarcascade_smile.xml')
+
+    # smile detection
+    smile = smile_cascade.detectMultiScale(
+        gray,
+        scaleFactor=1.1,
+        minNeighbors=5,
+        minSize=(30, 30),
+        flags = 0
+    )
+    return []
+
+
+def removeExtraneousEyes(eyes, fx, fy, fw, fh):
+    ''' remove any eyes not in the face '''
     to_remove = []
     for index, val in enumerate(eyes):
         (ex, ey, ew, eh) = val
@@ -37,33 +73,16 @@ def removeExtraneousEyes(eyes, fx, fy, fw, fh):
             to_remove.append(index)
 
     for i in to_remove:
+        # bug here?
         eyes.pop(i)
 
     return eyes[:2]
 
 
-def getEyeFeatures(fx, fy, fw, fh, img, gray):
-    img_h, img_w = img.shape[:2]
-    # find eyes
-    open_eyes_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_eye.xml')
-
-    # for debugging
-    if IS_DEBUG:
-        open_eyes_cascade = cv2.CascadeClassifier('cascades/haarcascade_eye.xml')
-
-    eyes = open_eyes_cascade.detectMultiScale(
-        gray,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(30, 30),
-        flags = 0
-    )
-
-    if not len(eyes) > 0:
-        return [None] * 6
-
-    eyes = removeExtraneousEyes(eyes, fx, fy, fw, fh)
-
+def getEyeAverage(eyes):
+    '''If there are 2 eyes in the face, get the average
+    (center between the eyes)
+    '''
     number_of_visible_eyes = len(eyes)
 
     avg_x = 0
@@ -80,25 +99,60 @@ def getEyeFeatures(fx, fy, fw, fh, img, gray):
     avg_w = float(avg_w) / number_of_visible_eyes
     avg_h = float(avg_h) / number_of_visible_eyes
 
-    eye_size = float(avg_x * avg_h) / (fw * fh)
+    return (avg_x, avg_y, avg_w, avg_h)
 
-    eye_x_in_img = avg_x / img_w
-    eye_y_in_img = avg_y / img_h
-    eye_x_in_face = float(avg_x - fx) / fw
-    eye_y_in_face = float(avg_y - fy) / fh
+
+def getEyeFeatures(fx, fy, fw, fh, img, gray):
+    img_h, img_w = img.shape[:2]
+    # find eyes
+    open_eyes_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_eye.xml')
+
+    # for debugging
+    if IS_DEBUG:
+        open_eyes_cascade = cv2.CascadeClassifier('cascades/haarcascade_eye.xml')
+
+    # eye detection
+    eyes = open_eyes_cascade.detectMultiScale(
+        gray,
+        scaleFactor=1.1,
+        minNeighbors=5,
+        minSize=(30, 30),
+        flags = 0
+    )
+
+    # Don't do eye features if there are no eyes!!
+    if not len(eyes) > 0:
+        return [None] * len(getEyeFeatureNames())
+
+    eyes = removeExtraneousEyes(eyes, fx, fy, fw, fh)
+    # get the center of the eyes
+    (avg_x, avg_y, avg_w, avg_h) = getEyeAverage(eyes)
+
+    # size of the eye in the face
+    eye_size = float(avg_w * avg_h) / (fw * fh)
+
+    # placement of eye in the image
+    eye_loc_x = [0]*NUM_LOC_BINS
+    eye_loc_y = [0]*NUM_LOC_BINS
+    eye_loc_x[util.getLocBinIndex(float(avg_x) / img_w, NUM_LOC_BINS)] = 1
+    eye_loc_y[util.getLocBinIndex(float(avg_y) / img_h, NUM_LOC_BINS)] = 1
 
     if IS_DEBUG:
         '''Display for debugging'''
         for (ex, ey, ew, eh) in eyes:
             cv2.rectangle(img, (ex, ey), (ex+ew, ey+eh), (0, 255, 0), 2)
 
-    return [eye_size, number_of_visible_eyes,
-            eye_x_in_face, eye_y_in_face, eye_x_in_img, eye_y_in_img]
+    features = [eye_size, len(eyes)] + eye_loc_x + eye_loc_y
+
+    assert len(features) == len(getEyeFeatureNames()), \
+        "length of eye features matches feature names"
+
+    return features
 
 
 def extractFeature(img):
-    is_frontal_face = False
-    is_profile_face = False
+    is_frontal_face = 0
+    is_profile_face = 0
 
     img_h, img_w = img.shape[:2]
     # convert to grayscale
@@ -124,9 +178,9 @@ def extractFeature(img):
 
     # if not, check for a profile view
     if len(faces) > 0:
-        is_frontal_face = True
+        is_frontal_face = 1
     else:
-        faces = front_face_cascade.detectMultiScale(
+        faces = profile_face_cascade.detectMultiScale(
             gray,
             scaleFactor=1.3,
             minNeighbors=5,
@@ -138,24 +192,38 @@ def extractFeature(img):
     if len(faces) == 0:
         return [None] * len(getFeatureName())
     elif not is_frontal_face:
-        is_profile_face = True
+        is_profile_face = 1
 
     # we only want one face per image, so take the first one always
     (x, y, w, h) = faces[0]
-    face_x = float(x + float(w) / 2) / img_w
-    face_y = float(y + float(w) / 2) / img_h
+
+    # face size, as percentage of image
     face_size = float(w * h) / (img_h * img_w)
 
-    features = [is_frontal_face, is_profile_face, face_x, face_y, face_size]
-    features += getEyeFeatures(x, y, w, h, img, gray)
+    # face location, as percentage
+    face_loc_x = [0] * NUM_LOC_BINS
+    face_loc_y = [0] * NUM_LOC_BINS
+    face_loc_x[util.getLocBinIndex(float(x + float(w) / 2) / img_w,
+                                   NUM_LOC_BINS)] = 1
+    face_loc_y[util.getLocBinIndex(float(y + float(h) / 2) / img_h,
+                                   NUM_LOC_BINS)] = 1
 
+    # ready the features for returning
+    features = [is_frontal_face, is_profile_face, face_size] + \
+        face_loc_x + face_loc_y
+    features += getEyeFeatures(x, y, w, h, img, gray)
+    features += getSmileFeatures(x, y, w, h, img, gray)
+
+    assert len(features) == len(getFeatureName()), \
+        "length of features matches feature names"
 
     '''Display and debug'''
-    # cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
-    # roi_gray = gray[y:y+h, x:x+w]
-    # roi_color = img[y:y+h, x:x+w]
-    # cv2.imshow('img', img)
-    # cv2.waitKey(0)
+    if IS_DEBUG:
+        cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
+        roi_gray = gray[y:y+h, x:x+w]
+        roi_color = img[y:y+h, x:x+w]
+        cv2.imshow('img', img)
+        cv2.waitKey(0)
 
     return features
 

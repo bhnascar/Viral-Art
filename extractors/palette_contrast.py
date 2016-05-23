@@ -7,21 +7,27 @@ import matplotlib.pyplot as plt
 import cv2
 import imutils
 
+IS_DEBUG = True
+
+
 def getFeatureName():
     return ["Value_Contrast", "Color_Contrast"]
 
 
 def extractFeature(img):
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = imutils.resize(img, width=200)
+
     # Get dominant color scheme via k-means
     # reshape the image to be a list of pixels
     img = img.reshape((img.shape[0] * img.shape[1], 3))
 
     # run kmeans
-    clt = KMeans(n_clusters=5)
+    clt = KMeans(n_clusters=8)
     clt.fit(img)
 
     # convert to hsv
-    hsv = cv2.cvtColor(np.float32([clt.cluster_centers_]), cv2.COLOR_BGR2HSV)
+    hsv = cv2.cvtColor(np.float32([clt.cluster_centers_]), cv2.COLOR_RGB2HSV)
 
     # initialize values
     # value runs from 0-255 in opencv
@@ -37,19 +43,21 @@ def extractFeature(img):
         max_hue = max(max_hue, h)
         min_hue = min(min_hue, h)
 
-    # # build a histogram of clusters and then create a figure
-    # # representing the number of pixels labeled to each color
-    # hist = centroid_histogram(clt)
-    # bar = plot_colors(hist, clt.cluster_centers_)
+    if IS_DEBUG:
+        # build a histogram of clusters and then create a figure
+        # representing the number of pixels labeled to each color
+        hist = centroid_histogram(clt)
+        bar = plot_colors(hist, clt.cluster_centers_)
 
-    # # show our color bar
-    # plt.figure()
-    # plt.axis("off")
-    # plt.imshow(bar)
-    # plt.show()
+        # show our color bar
+        plt.figure()
+        plt.axis("off")
+        plt.imshow(bar)
+        plt.show()
 
     # value contrast, color contrast
     return [max_val - min_val, max_hue - min_hue]
+
 
 '''debugging functions'''
 def centroid_histogram(clt):
@@ -64,6 +72,7 @@ def centroid_histogram(clt):
 
     # return the histogram
     return hist
+
 
 def plot_colors(hist, centroids):
     # initialize the bar chart representing the relative frequency
@@ -83,16 +92,17 @@ def plot_colors(hist, centroids):
     # return the bar chart
     return bar
 
+
 def main():
-    cv_image = cv2.imread("test_data/wlop.jpg")
-    cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
-    cv_image = imutils.resize(cv_image, width=200)
+    cv_image = cv2.imread("test_data/yuumei_profile.jpg")
 
-    # plt.figure()
-    # plt.axis("off")
-    # plt.imshow(cv_image)
+    if IS_DEBUG:
+        cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+        plt.figure()
+        plt.axis("off")
+        plt.imshow(cv_image)
+        cv_image = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
 
-    cv_image = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
     print extractFeature(cv_image)
 
 if __name__ == "__main__":
