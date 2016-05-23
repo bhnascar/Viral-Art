@@ -9,7 +9,7 @@ def getFeatureName():
 	Returns the name of this feature. For ex., "Contrast" 
 	or "Composition" or something. Must be unique.
 	"""
-	return "Test"
+	return None
 
 def extractFeature(img):
 	""" 
