@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import cv2
 import imutils
 
-IS_DEBUG = True
+IS_DEBUG = False
 
 
 def getFeatureName():
@@ -23,7 +23,7 @@ def extractFeature(img):
     img = img.reshape((img.shape[0] * img.shape[1], 3))
 
     # run kmeans
-    clt = KMeans(n_clusters=8)
+    clt = KMeans(n_clusters=10)
     clt.fit(img)
 
     # convert to hsv
@@ -42,6 +42,7 @@ def extractFeature(img):
         min_val = min(min_val, v)
         max_hue = max(max_hue, h)
         min_hue = min(min_hue, h)
+
 
     if IS_DEBUG:
         # build a histogram of clusters and then create a figure

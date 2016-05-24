@@ -11,14 +11,15 @@ import cv2
 import util
 import imutils
 
-IS_DEBUG = False
+IS_DEBUG = True
 NUM_LOC_BINS = 5
+MAX_VAL = 100
 
 
 def getFeatureName():
     return ["torso_exists", "torso_size"] + \
-        util.binLocFeatureNames("torso_x", NUM_LOC_BINS) + \
-        util.binLocFeatureNames("torso_y", NUM_LOC_BINS)
+        util.binFeatureNames("torso_x", NUM_LOC_BINS, MAX_VAL) + \
+        util.binFeatureNames("torso_y", NUM_LOC_BINS, MAX_VAL)
 
 
 def extractFeature(img):
@@ -43,9 +44,9 @@ def extractFeature(img):
         flags = 0
         )
 
-    # return none if there are no faces
+    # return none if there are no torso
     if len(torso) == 0:
-        return [None] * len(getFeatureName())
+        return [0] * len(getFeatureName())
 
     # we only want one per image, so take the first one always
     (x, y, w, h) = torso[0]
@@ -56,10 +57,10 @@ def extractFeature(img):
     # torso location, as percentage
     torso_loc_x = [0] * NUM_LOC_BINS
     torso_loc_y = [0] * NUM_LOC_BINS
-    torso_loc_x[util.getLocBinIndex(float(x + float(w) / 2) / img_w,
-                                    NUM_LOC_BINS)] = 1
-    torso_loc_y[util.getLocBinIndex(float(y + float(h) / 2) / img_h,
-                                    NUM_LOC_BINS)] = 1
+    torso_loc_x[util.getBinIndex(100*(float(x + float(w) / 2) / img_w),
+                                 NUM_LOC_BINS, MAX_VAL)] = 1
+    torso_loc_y[util.getBinIndex(100*(float(y + float(h) / 2) / img_h),
+                                 NUM_LOC_BINS, MAX_VAL)] = 1
 
     # ready the features for returning
     features = [1, torso_size] + torso_loc_x + torso_loc_y

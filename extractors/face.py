@@ -20,20 +20,20 @@ import util
 import imutils
 import numpy as np
 
-IS_DEBUG = True
+IS_DEBUG = False
 NUM_LOC_BINS = 5
-
+MAX_LOC_VAL = 100
 
 def getEyeFeatureNames():
     return ["eye_size", "number_of_visible_eyes"] + \
-        util.binLocFeatureNames("eye_x_in_img", NUM_LOC_BINS) + \
-        util.binLocFeatureNames("eye_y_in_img", NUM_LOC_BINS)
+        util.binFeatureNames("eye_x_in_img", NUM_LOC_BINS, MAX_LOC_VAL) + \
+        util.binFeatureNames("eye_y_in_img", NUM_LOC_BINS, MAX_LOC_VAL)
 
 
 def getFaceFeatureNames():
     return ["is_frontal_face", "is_profile_face", "face_size"] + \
-        util.binLocFeatureNames("face_x", NUM_LOC_BINS) + \
-        util.binLocFeatureNames("face_y", NUM_LOC_BINS)
+        util.binFeatureNames("face_x", NUM_LOC_BINS, MAX_LOC_VAL) + \
+        util.binFeatureNames("face_y", NUM_LOC_BINS, MAX_LOC_VAL)
 
 
 def getSmileFeatureNames():
@@ -65,7 +65,6 @@ def getSmileFeatures(fx, fy, fw, fh, img, gray):
 
 
 def removeExtraneousEyes(eyes, fx, fy, fw, fh):
-    print len(eyes)
     ''' remove any eyes not in the face '''
     to_remove = []
     for index, val in enumerate(eyes):
@@ -122,11 +121,12 @@ def getEyeFeatures(fx, fy, fw, fh, img, gray):
         flags = 0
     )
 
+    eyes = removeExtraneousEyes(eyes, fx, fy, fw, fh)
+
     # Don't do eye features if there are no eyes!!
     if not len(eyes) > 0:
-        return [None] * len(getEyeFeatureNames())
+        return [0] * len(getEyeFeatureNames())
 
-    eyes = removeExtraneousEyes(eyes, fx, fy, fw, fh)
     # get the center of the eyes
     (avg_x, avg_y, avg_w, avg_h) = getEyeAverage(eyes)
 
@@ -136,8 +136,10 @@ def getEyeFeatures(fx, fy, fw, fh, img, gray):
     # placement of eye in the image
     eye_loc_x = [0]*NUM_LOC_BINS
     eye_loc_y = [0]*NUM_LOC_BINS
-    eye_loc_x[util.getLocBinIndex(float(avg_x) / img_w, NUM_LOC_BINS)] = 1
-    eye_loc_y[util.getLocBinIndex(float(avg_y) / img_h, NUM_LOC_BINS)] = 1
+    eye_loc_x[util.getBinIndex(100*(float(avg_x) / img_w),
+                               NUM_LOC_BINS, MAX_LOC_VAL)] = 1
+    eye_loc_y[util.getBinIndex(100*(float(avg_y) / img_h),
+                               NUM_LOC_BINS, MAX_LOC_VAL)] = 1
 
     if IS_DEBUG:
         '''Display for debugging'''
@@ -192,7 +194,7 @@ def extractFeature(img):
 
     # return none if there are no faces
     if len(faces) == 0:
-        return [None] * len(getFeatureName())
+        return [0] * len(getFeatureName())
     elif not is_frontal_face:
         is_profile_face = 1
 
@@ -205,10 +207,10 @@ def extractFeature(img):
     # face location, as percentage
     face_loc_x = [0] * NUM_LOC_BINS
     face_loc_y = [0] * NUM_LOC_BINS
-    face_loc_x[util.getLocBinIndex(float(x + float(w) / 2) / img_w,
-                                   NUM_LOC_BINS)] = 1
-    face_loc_y[util.getLocBinIndex(float(y + float(h) / 2) / img_h,
-                                   NUM_LOC_BINS)] = 1
+    face_loc_x[util.getBinIndex(100*(float(x + float(w) / 2) / img_w),
+                                NUM_LOC_BINS, MAX_LOC_VAL)] = 1
+    face_loc_y[util.getBinIndex(100*(float(y + float(h) / 2) / img_h),
+                                NUM_LOC_BINS, MAX_LOC_VAL)] = 1
 
     # ready the features for returning
     features = [is_frontal_face, is_profile_face, face_size] + \

@@ -45,7 +45,7 @@ def extractFeature(img):
 
     # return none if there are no faces
     if len(hands) == 0:
-        return [None] * len(getFeatureName())
+        return [0] * len(getFeatureName())
 
     # we only want one per image, so take the first one always
     (x, y, w, h) = hands[0]

@@ -13,12 +13,13 @@ import imutils
 
 IS_DEBUG = False
 NUM_LOC_BINS = 5
+MAX_VAL = 100
 
 
 def getFeatureName():
     return ["fullbody_exists", "fullbody_size"] + \
-        util.binLocFeatureNames("fullbody_x", NUM_LOC_BINS) + \
-        util.binLocFeatureNames("fullbody_y", NUM_LOC_BINS)
+        util.binFeatureNames("fullbody_x", NUM_LOC_BINS, MAX_VAL) + \
+        util.binFeatureNames("fullbody_y", NUM_LOC_BINS, MAX_VAL)
 
 
 def extractFeature(img):
@@ -56,10 +57,10 @@ def extractFeature(img):
     # fullbody location, as percentage
     fullbody_loc_x = [0] * NUM_LOC_BINS
     fullbody_loc_y = [0] * NUM_LOC_BINS
-    fullbody_loc_x[util.getLocBinIndex(float(x + float(w) / 2) / img_w,
-                                    NUM_LOC_BINS)] = 1
-    fullbody_loc_y[util.getLocBinIndex(float(y + float(h) / 2) / img_h,
-                                    NUM_LOC_BINS)] = 1
+    fullbody_loc_x[util.getBinIndex(100*(float(x + float(w) / 2) / img_w),
+                                    NUM_LOC_BINS, MAX_VAL)] = 1
+    fullbody_loc_y[util.getBinIndex(100*(float(y + float(h) / 2) / img_h),
+                                    NUM_LOC_BINS, MAX_VAL)] = 1
 
     # ready the features for returning
     features = [1, fullbody_size] + fullbody_loc_x + fullbody_loc_y
