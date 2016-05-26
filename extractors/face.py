@@ -73,10 +73,7 @@ def removeExtraneousEyes(eyes, fx, fy, fw, fh):
            (ex + ew > fx + fw) or (ey + eh > fy + fh)):
             to_remove.append(index)
 
-    mask = np.ones(len(eyes), dtype=bool)
-    mask[to_remove] = False
-    eyes = eyes[mask]
-
+    eyes = np.delete(eyes, to_remove, axis=0)
     return eyes[:2]
 
 

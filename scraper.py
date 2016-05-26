@@ -13,7 +13,8 @@ class DAImage:
     """
     base_url = ""
     url = ""
-    medium = ""
+    is_digital = 0
+    is_traditional = 0
     favs = 0
     views = 0
     comments = 0
@@ -31,17 +32,18 @@ def write_img_to_db(conn, cur, img):
     rows = cur.fetchall()
     if len(rows) == 0:
         query = """
-                INSERT INTO features (base_url, url, views, favorites, medium)  
-                VALUES ('{}', '{}', '{}', '{}', '{}')
-                """.format(img.base_url, img.url, img.views, img.favs, img.medium);
+                INSERT INTO features (base_url, url, views, favorites, is_traditional, is_digital)  
+                VALUES ('{}', '{}', '{}', '{}', '{}', '{}')
+                """.format(img.base_url, img.url, img.views, img.favs, img.is_traditional, img.is_digital);
     else:
         query = """
                 UPDATE features
                 SET views = '{}',
                     favorites = '{}',
-                    medium = '{}'
+                    is_traditional = '{}',
+                    is_digital = '{}'
                 WHERE id = '{}'
-                """.format(img.views, img.favs, img.medium, rows[0]);
+                """.format(img.views, img.favs, img.is_traditional, img.is_digital, rows[0]);
     cur.execute(query)
     conn.commit()
 
@@ -100,6 +102,9 @@ def scrape_img_page(page_html, page_url):
     nav_breadcrumbs = sp.find("span", "dev-about-breadcrumb")
     img.medium = nav_breadcrumbs.span.a.span.contents[0]
 
+    img.is_traditional = 1 if "traditional" in img.medium.lower() else 0
+    img.is_digital = 1 if "digital" in img.medium.lower() else 0
+
     # Watchers information is generated via Javascript, can't scrape it. :(
     # about = sp.find("div", "dev-title-container")
     # artist_link = about.span.a.get("href")
@@ -107,7 +112,7 @@ def scrape_img_page(page_html, page_url):
     # artist_stats_page_html = get_page_html(artist_stats_link)
     # img.watchers = scrape_artist_stats_page(artist_stats_page_html)
 
-    print (img.url, img.views, img.favs, img.comments, img.medium)
+    print (img.url, img.views, img.favs, img.comments, img.is_traditional, img.is_digital)
     return img
 
 def scrape_results_page(page_html):

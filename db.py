@@ -11,7 +11,8 @@ CORE_COLUMNS = [
     "url",
     "views",
     "favorites",
-    "medium"
+    "is_traditional",
+    "is_digital"
 ]
 
 def validate_tables(cur):
@@ -24,6 +25,7 @@ def validate_tables(cur):
                           {} TEXT,
                           {} TEXT,
                           {} TEXT, 
+                          {} TEXT,
                           {} TEXT,
                           {} TEXT);
                 """.format(*CORE_COLUMNS));
