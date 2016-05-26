@@ -45,7 +45,7 @@ def extractFeature(img):
 
     for c in hsv[0]:
         h, s, v = c
-        # BINARY OR HISTOGRAM?
+        ''' BINARY OR HISTOGRAM? '''
         hue_palette[util.getBinIndex(h, NUM_BINS, MAX_HUE_VAL)] = 1
         sat_palette[util.getBinIndex(s, NUM_BINS, MAX_SAT_VAL)] = 1
         val_palette[util.getBinIndex(v, NUM_BINS, MAX_VAL_VAL)] = 1

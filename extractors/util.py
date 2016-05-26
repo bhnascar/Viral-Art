@@ -1,7 +1,7 @@
 def binFeatureNames(prefix, numBins, max_val):
     '''returns a list of names of the bucketed features'''
     multiple = int(max_val / numBins)
-    return [prefix + ('_%d' % i*multiple) for i in range(1, numBins+1)]
+    return [prefix + ('_%d' % (i*multiple)) for i in range(1, numBins+1)]
 
 
 def getBinIndex(value, numBins, max_val):
