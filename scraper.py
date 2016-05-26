@@ -3,6 +3,7 @@
 import sys
 import locale
 import db
+import os
 
 from urllib2 import urlopen, URLError
 from bs4 import BeautifulSoup
@@ -112,7 +113,7 @@ def scrape_img_page(page_html, page_url):
     # artist_stats_page_html = get_page_html(artist_stats_link)
     # img.watchers = scrape_artist_stats_page(artist_stats_page_html)
 
-    print (img.url, img.views, img.favs, img.comments, img.is_traditional, img.is_digital)
+    print (img.url, img.views, img.favs, img.is_traditional, img.is_digital)
     return img
 
 def scrape_results_page(page_html):
@@ -171,8 +172,11 @@ def main(args):
         return
 
     # For parsing number strings that have commas
-    # locale.setlocale(locale.LC_ALL, 'en_US.utf8')
-    locale.setlocale( locale.LC_ALL, 'English_United States.1252' )
+    if os.name == "nt":
+        # Windows... 
+        locale.setlocale( locale.LC_ALL, 'English_United States.1252' )
+    else:
+        locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
 
     # Handle to the image information database
     conn, cur = db.connect()
