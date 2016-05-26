@@ -23,7 +23,7 @@ def dump_features(cur, features = "", outputfile = DEFAULT_OUTPUT_FILE):
             if not features:
                 column_names = [row[1] for row in rows]
             else:
-                column_names = [row[1] for row in rows if row[1] in features]
+                column_names = [row[1] for row in rows if row[1] not in features]
             output.write(",".join(column_names) + "\n")
 
     # Write row data
@@ -48,7 +48,7 @@ def main(args):
               By default, this dumps all features to the default
               output file under the workspace directory. If you
               like you can specify the output file and a comma-
-              separated list of specific to dump. \n
+              separated list of specific features to exclude. \n
               Ex: ./dumper.py output.txt Average_Saturation,Average_Hue
               """
         return
