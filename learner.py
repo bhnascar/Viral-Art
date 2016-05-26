@@ -14,9 +14,10 @@ train_features = np.array(train_features)
 
 print "train labels: "
 print train_views
-print 
+
 print "train features:"
 print train_features
 
 clf = svm.SVR()
 clf.fit(train_features, train_labels)
+clf.predict([[1, 1]])

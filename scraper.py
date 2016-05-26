@@ -140,12 +140,13 @@ def main(args):
               for existing images in the database.
               """
         return
-    elif (args[1] == '-r' or args[1] == '-s') and len(args) < 3:
+    elif (args[1] == '-r' or args[1] == '-s') and len(args) < 3 :
         print "Insufficient arguments. Try 'help' for more information";
         return
 
     # For parsing number strings that have commas
-    locale.setlocale(locale.LC_ALL, 'en_US.UTF-8')
+    # locale.setlocale(locale.LC_ALL, 'en_US.utf8')
+    locale.setlocale( locale.LC_ALL, 'English_United States.1252' )
 
     # Handle to the image information database
     conn, cur = db.connect()
