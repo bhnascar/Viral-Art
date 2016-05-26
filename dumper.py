@@ -48,7 +48,7 @@ def main(args):
               By default, this dumps all features to the default
               output file under the workspace directory. If you
               like you can specify the output file and a comma-
-              separated list of specific to dump. \n
+              separated list of specific features to exclude. \n
               Ex: ./dumper.py output.txt Average_Saturation,Average_Hue
               """
         return
