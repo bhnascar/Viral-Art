@@ -10,3 +10,14 @@ def getBinIndex(value, numBins, max_val):
         Intended for use for the location features.
     '''
     return int((value) / (float(max_val) / numBins))
+
+
+def compute_hue_diff(c1, c2):
+    """
+    Computes HSV color diff with wraparound.
+    """
+    c_max = max(c1[0], c2[0])
+    c_min = min(c1[0], c2[0])
+    d1 = c_max - c_min
+    d2 = (1 - c_max) + c_min
+    return min(d1, d2)
