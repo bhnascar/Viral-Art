@@ -16,22 +16,13 @@ def dump_features(cur, features = "", outputfile = DEFAULT_OUTPUT_FILE):
     feature vector.
     """
     # Write column names
-<<<<<<< HEAD
-    # if not os.path.isfile(outputfile):
-    with open(outputfile, "w") as output:
-=======
     with open(outputfile, "w+") as output:
->>>>>>> 511b963f29812cc78a151340875a3bbd33bc4b0e
         cur.execute("PRAGMA table_info(features);")
         rows = cur.fetchall()
         if not features:
             column_names = [row[1] for row in rows]
         else:
-<<<<<<< HEAD
-            column_names = [row[1] for row in rows if row[1] in features]
-=======
             column_names = [row[1] for row in rows if row[1] not in features]
->>>>>>> 511b963f29812cc78a151340875a3bbd33bc4b0e
         output.write(",".join(column_names) + "\n")
 
     # Write row data
