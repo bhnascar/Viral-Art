@@ -16,7 +16,7 @@ class DAImage:
     medium = ""
     favs = 0
     views = 0
-    comments = 0
+    # comments = 0
     # watchers = 0
 
 def write_img_to_db(conn, cur, img):
@@ -95,7 +95,7 @@ def scrape_img_page(page_html, page_url):
     stats = sp.find("div", "dev-right-bar-content dev-metainfo-content dev-metainfo-stats")
     img.views = locale.atoi(stats.dl.contents[1].contents[0])
     img.favs = locale.atoi(stats.dl.contents[3].contents[0])
-    img.comments = locale.atoi(stats.dl.contents[5].contents[0])
+    #img.comments = locale.atoi(stats.dl.contents[5].contents[0])
 
     nav_breadcrumbs = sp.find("span", "dev-about-breadcrumb")
     img.medium = nav_breadcrumbs.span.a.span.contents[0]
@@ -107,7 +107,7 @@ def scrape_img_page(page_html, page_url):
     # artist_stats_page_html = get_page_html(artist_stats_link)
     # img.watchers = scrape_artist_stats_page(artist_stats_page_html)
 
-    print (img.url, img.views, img.favs, img.comments, img.medium)
+    print (img.url, img.views, img.favs, img.medium)
     return img
 
 def scrape_results_page(page_html):
@@ -125,6 +125,23 @@ def scrape_results_page(page_html):
             imgs.append(scrape_img_page(img_page_html, page_url))
     return imgs
 
+def scrape_from_prefix_file(conn, cur, prefix_filename):
+    """
+    Reads a bunch of search result URL prefixes from the 
+    given file. For each prefix, append offsets from 0-300
+    in increments of 25 and scrape the corresponding 
+    search results page.
+    """
+    with open(prefix_filename) as prefix_file:
+        for url in prefix_file:
+            for offset in xrange(0, 300, 25):
+                scrape_url = (url.strip() + "&offset={}").format(offset)
+                print "Scraping from {}...".format(scrape_url)
+                page_html = get_page_html(scrape_url)
+                imgs = scrape_results_page(page_html)
+                for img in imgs:
+                    write_img_to_db(conn, cur, img)
+
 def main(args):
     if len(args) == 2 and args[1] == 'help':
         print """
@@ -135,6 +152,10 @@ def main(args):
 
               Use -s if you want to pass a URL to a single
               deviantART image.
+
+              Use -p if you want to pass a prefix file with a bunch of
+              search results URLs to scrape. This will scrape from offsets
+              0-300.
 
               Use -u if you want to update view/favs/medium information
               for existing images in the database.
@@ -160,6 +181,8 @@ def main(args):
         page_html = get_page_html(args[2])
         img = scrape_img_page(page_html, args[2])
         write_img_to_db(conn, cur, img)
+    elif (args[1] == "-p"):
+        scrape_from_prefix_file(conn, cur, args[2])
     elif (args[1] == "-u"):
         update_img_metadata(conn, cur)
     else:
