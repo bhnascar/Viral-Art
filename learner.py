@@ -3,6 +3,8 @@ Reads in features, and prints out the trained weight vector.
 '''
 import numpy as np
 import pandas as pd
+from sklearn import svm
+
 
 train_dataframe = pd.read_csv('output/features.txt')
 train_views = train_dataframe["views"].tolist()
@@ -15,3 +17,6 @@ print train_views
 print 
 print "train features:"
 print train_features
+
+clf = svm.SVR()
+clf.fit(train_features, train_labels)
