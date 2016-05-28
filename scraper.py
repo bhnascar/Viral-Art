@@ -70,6 +70,7 @@ def get_page_html(page_url):
     """
     Returns an HTML string for the given page URL.
     """
+    print "Fetching page_url {}...".format(page_url)
     try:
         return urlopen(page_url)
     except URLError, e:
