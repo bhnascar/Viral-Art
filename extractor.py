@@ -64,12 +64,15 @@ def get_image_data(url):
         urllib.urlretrieve(url, WORKSPACE_PATH + img_name)
     return cv2.imread(WORKSPACE_PATH + img_name)
 
-def update_images(conn, cur, filters = None):
+def update_images(conn, cur, filters = None, emptyOnly = False):
     """
     Walks through each image in the database and recalculates all of
     its features.
     """
-    cur.execute("SELECT id, url FROM features;")
+    if emptyOnly:
+        cur.execute("SELECT id,url FROM features WHERE Average_Hue IS NULL;")
+    else:
+        cur.execute("SELECT id, url FROM features;")
     rows = cur.fetchall()
     for row in rows:
         imgID = row[0]
@@ -86,18 +89,25 @@ def main(args):
     """
     if len(args) == 2 and args[1] == "help":
         print """
-              Usage: ./extractor.py [optional: feature name]\n
-              If a feature name is provided, only that feature will 
-              be updated.
+              Usage: ./extractor.py [-e | -f]\n
+              Use -f to specify a specific feature to update. Ex.
+              ./extractorpy -f Average_Hue\n
+              Use -e to only run the extractor on empty rows, i.e.
+              rows where image features have not yet been computed.\n
               """
         return
 
     conn, cur = db.connect()
 
-    if len(args) == 2:
-        update_images(conn, cur, args[1])
-    else:
+    if len(args) == 1:
         update_images(conn, cur)
+    elif len(args) == 3 and args[1] == "-f":
+        update_images(conn, cur, filters = args[2])
+    elif len(args) == 2 and args[1] == "-e":
+        update_images(conn, cur, emptyOnly = True)
+    else:
+        print "Insufficient or incorrect arguments. Try 'help' for more information";
+        return
 
 if __name__ == "__main__":
     main(sys.argv)

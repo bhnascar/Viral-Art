@@ -9,6 +9,7 @@ DB_FILENAME = "features.db"
 CORE_COLUMNS = [
     "base_url",
     "url",
+    "artist",
     "views",
     "favorites",
     "is_traditional",
@@ -22,6 +23,7 @@ def validate_tables(cur):
     cur.execute("""
                 CREATE TABLE IF NOT EXISTS 
                 features (id INTEGER PRIMARY KEY AUTOINCREMENT,
+                          {} TEXT,
                           {} TEXT,
                           {} TEXT,
                           {} TEXT, 

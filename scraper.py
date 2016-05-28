@@ -14,6 +14,7 @@ class DAImage:
     """
     base_url = ""
     url = ""
+    artist = ""
     is_digital = 0
     is_traditional = 0
     favs = 0
@@ -28,23 +29,26 @@ def write_img_to_db(conn, cur, img):
     already exists for that image (by comparing URLs), then
     update the existing row instead.
     """
+    if not img:
+        return
     query = "SELECT id FROM features WHERE url = '{}'".format(img.url)
     cur.execute(query)
     rows = cur.fetchall()
     if len(rows) == 0:
         query = """
-                INSERT INTO features (base_url, url, views, favorites, is_traditional, is_digital)  
-                VALUES ('{}', '{}', '{}', '{}', '{}', '{}')
-                """.format(img.base_url, img.url, img.views, img.favs, img.is_traditional, img.is_digital);
+                INSERT INTO features (base_url, url, artist, views, favorites, is_traditional, is_digital)  
+                VALUES ('{}', '{}', '{}', '{}', '{}', '{}', '{}')
+                """.format(img.base_url, img.url, img.artist, img.views, img.favs, img.is_traditional, img.is_digital);
     else:
         query = """
                 UPDATE features
-                SET views = '{}',
+                SET artist = '{}',
+                    views = '{}',
                     favorites = '{}',
                     is_traditional = '{}',
                     is_digital = '{}'
                 WHERE id = '{}'
-                """.format(img.views, img.favs, img.is_traditional, img.is_digital, rows[0]);
+                """.format(img.artist, img.views, img.favs, img.is_traditional, img.is_digital, rows[0][0]);
     cur.execute(query)
     conn.commit()
 
@@ -91,30 +95,36 @@ def scrape_img_page(page_html, page_url):
     """
     sp = BeautifulSoup(page_html, "html.parser")
 
-    img = DAImage()
-    img.base_url = page_url
-    img.url = sp.find("img", "dev-content-normal").get("src")
+    try:
+        img = DAImage()
+        img.base_url = page_url
+        img.url = sp.find("img", "dev-content-normal").get("src")
 
-    stats = sp.find("div", "dev-right-bar-content dev-metainfo-content dev-metainfo-stats")
-    img.views = locale.atoi(stats.dl.contents[1].contents[0])
-    img.favs = locale.atoi(stats.dl.contents[3].contents[0])
-    #img.comments = locale.atoi(stats.dl.contents[5].contents[0])
+        stats = sp.find("div", "dev-right-bar-content dev-metainfo-content dev-metainfo-stats")
+        img.views = locale.atoi(stats.dl.contents[1].contents[0])
+        img.favs = locale.atoi(stats.dl.contents[3].contents[0])
+        #img.comments = locale.atoi(stats.dl.contents[5].contents[0])
 
-    nav_breadcrumbs = sp.find("span", "dev-about-breadcrumb")
-    img.medium = nav_breadcrumbs.span.a.span.contents[0]
+        nav_breadcrumbs = sp.find("span", "dev-about-breadcrumb")
+        img.medium = nav_breadcrumbs.span.a.span.contents[0]
 
-    img.is_traditional = 1 if "traditional" in img.medium.lower() else 0
-    img.is_digital = 1 if "digital" in img.medium.lower() else 0
+        img.is_traditional = 1 if "traditional" in img.medium.lower() else 0
+        img.is_digital = 1 if "digital" in img.medium.lower() else 0
 
-    # Watchers information is generated via Javascript, can't scrape it. :(
-    # about = sp.find("div", "dev-title-container")
-    # artist_link = about.span.a.get("href")
-    # artist_stats_link = artist_link + "stats/gallery/"
-    # artist_stats_page_html = get_page_html(artist_stats_link)
-    # img.watchers = scrape_artist_stats_page(artist_stats_page_html)
+        title = sp.find("div", "dev-title-container")
+        img.artist = title.h1.small.a.contents[0]
 
-    print (img.url, img.views, img.favs, img.is_traditional, img.is_digital)
-    return img
+        # Watchers information is generated via Javascript, can't scrape it. :(
+        # about = sp.find("div", "dev-title-container")
+        # artist_link = about.span.a.get("href")
+        # artist_stats_link = artist_link + "stats/gallery/"
+        # artist_stats_page_html = get_page_html(artist_stats_link)
+        # img.watchers = scrape_artist_stats_page(artist_stats_page_html)
+
+        print (img.url, img.views, img.artist, img.favs, img.is_traditional, img.is_digital)
+        return img
+    except:
+        return None
 
 def scrape_results_page(page_html):
     """
