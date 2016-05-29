@@ -66,8 +66,11 @@ def load_data(datafile = DEFAULT_DATA_FILE):
     # Read data
     dataframe = pd.read_csv(datafile)
     views = dataframe["views"].tolist()
+
+    # Uncomment this and fix the return line if you want to do 
+    # favorites prediction instead
     # favs = dataframe["favorites"].tolist()
-    # selected_features = [7, 8, 9, 10, 11, 12, 34, 35, 38, 49]
+
     features = dataframe.iloc[:, 4:-1]
     features = np.array(features)
     return features, views
@@ -111,7 +114,7 @@ def main(args):
     # Label axes
     ax.set_xlabel('Measured')
     ax.set_ylabel('Predicted')
-    
+
     plt.show()
 
 if __name__ == "__main__":
