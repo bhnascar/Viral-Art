@@ -59,7 +59,7 @@ def load_data(datafile):
     features is an NP array and labels is a list.
     """
     # Read data
-    dataframe = pd.read_csv('output/features.txt')
+    dataframe = pd.read_csv(datafile)
     urls = dataframe["base_url"].tolist()
     artists = dataframe["artist"].tolist()
     features = dataframe.iloc[:, 5:-1]
