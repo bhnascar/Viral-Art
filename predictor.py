@@ -69,7 +69,9 @@ def load_data(datafile):
 def main(args):
     if len(args) == 2 and args[1] == "help":
         print """
-              Usage: ./predictor.py [deviantART username] [features file]
+              Usage: ./predictor.py [deviantART username] [features file]\n
+              Currently you can try 'yuumei' and 'Namecchan' since these
+              users have ~30 pictures each in our database of a 1000.
               """
         return
     elif len(args) < 3:
@@ -99,6 +101,10 @@ def main(args):
 
     # Print overall accuracy
     print "Overall accuracy: {}".format(metrics.accuracy_score(tr_la, predictions))
+    print """
+          Note, this is a misleading accuracy report because the SVC just keeps
+          predicting 0 (not a match), which means there's only like ~15/1000 mistakes.
+          """
 
 if __name__ == "__main__":
     main(sys.argv)
