@@ -71,7 +71,10 @@ def load_data(datafile = DEFAULT_DATA_FILE):
     # favorites prediction instead
     # favs = dataframe["favorites"].tolist()
 
-    features = dataframe.iloc[:, 4:-1]
+    # 5 is the first column after 'favs'.
+    # -1 means last column from the end, because I added an extra
+    # column for the artist name, which we want to ignore.
+    features = dataframe.iloc[:, 5:-1]
     features = np.array(features)
     return features, views
 
