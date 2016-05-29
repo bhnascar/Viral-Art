@@ -19,6 +19,7 @@ import cv2
 import util
 import imutils
 import numpy as np
+import os
 
 IS_DEBUG = False
 NUM_LOC_BINS = 5
@@ -108,15 +109,19 @@ def getEyeFeatures(fx, fy, fw, fh, img, gray):
     # for debugging
     if IS_DEBUG:
         open_eyes_cascade = cv2.CascadeClassifier('cascades/haarcascade_eye.xml')
-
+    # print 'hi'
     # eye detection
+    # eyes = open_eyes_cascade.detectMultiScale3(
     eyes = open_eyes_cascade.detectMultiScale(
         gray,
         scaleFactor=1.1,
-        minNeighbors=5,
         minSize=(30, 30),
-        flags = 0
+        minNeighbors=5
+        # outputRejectLevels = True
     )
+    # weights = eyes[2]
+    # eyes = eyes[0]
+    # print weights
 
     eyes = removeExtraneousEyes(eyes, fx, fy, fw, fh)
 
@@ -158,6 +163,7 @@ def extractFeature(img):
     img_h, img_w = img.shape[:2]
     # convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.equalizeHist(gray)
 
     # find faces
     front_face_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_frontalface_default.xml')
@@ -225,15 +231,36 @@ def extractFeature(img):
         roi_color = img[y:y+h, x:x+w]
         cv2.imshow('img', img)
         cv2.waitKey(0)
+        return (features, img, gray)
 
     return features
 
 
 def main():
-    cv_image = cv2.imread("test_data/rey.png")
-    # cv_image = imutils.resize(cv_image, width=200)
+    correct_face_list = []
+    correct_eye_list = []
+    for filename in os.listdir('test_data/'):
+        path = 'test_data/' + filename
+        if os.path.isdir(path):
+            continue
 
-    print extractFeature(cv_image)
+        print filename
+        cv_image = cv2.imread(path)
+        blah = extractFeature(cv_image)
+        if len(blah) == 3:
+            (features, img, filtered) = blah
+            print features
+            cv2.imwrite('gray_output/' + filename, img)
+            cv2.imwrite('gray_output/filter/' + filename, filtered)
+
+    #     print 'correct face or no? [1/0]'
+    #     correct_face_list.append(int(raw_input()))
+    #     print 'correct eyes or no? [2/1/0]'
+    #     correct_eye_list.append(int(raw_input()))
+
+    # print "face accuracy: %f" % (float(sum(correct_face_list)) / len(correct_face_list))
+    # print "eye accuracy: %f" % (float(sum(correct_eye_list)) / (2*len(correct_eye_list)))
+
 
 if __name__ == "__main__":
     main()

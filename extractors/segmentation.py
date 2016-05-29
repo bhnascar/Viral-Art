@@ -32,7 +32,7 @@ def main():
             self = out2[y, x, :]
             bottom_neighbor = out2[y + 1, x, :]
             right_neighbor = out2[y, x + 1, :]
-            
+
             color_diff = compute_diff(self, bottom_neighbor)
             if (color_diff > max_color_diff):
                 max_color_diff = color_diff

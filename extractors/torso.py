@@ -10,8 +10,9 @@ TODO: look into training a Haar cascade for more cartoony styles
 import cv2
 import util
 import imutils
+import os
 
-IS_DEBUG = True
+IS_DEBUG = False
 NUM_LOC_BINS = 5
 MAX_VAL = 100
 
@@ -27,6 +28,7 @@ def extractFeature(img):
 
     # convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # gray = cv2.equalizeHist(gray)
 
     # find torso
     torso_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_headshoulders.xml')
@@ -40,7 +42,7 @@ def extractFeature(img):
         gray,
         scaleFactor=1.3,
         minNeighbors=5,
-        minSize=(30, 30),
+        minSize=(100, 100),
         flags = 0
         )
 
@@ -80,7 +82,16 @@ def extractFeature(img):
 
 
 def main():
-    cv_image = cv2.imread("test_data/rey.png")
+    for filename in os.listdir('test_data/'):
+        path = 'test_data/' + filename
+        if os.path.isdir(path):
+            continue
+
+        print filename
+        cv_image = cv2.imread(path)
+        print extractFeature(cv_image)
+
+    # cv_image = cv2.imread("test_data/rey.png")
     # cv_image = imutils.resize(cv_image, width=200)
 
     print extractFeature(cv_image)

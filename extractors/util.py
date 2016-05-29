@@ -14,6 +14,17 @@ def getBinIndex(value, numBins, max_val):
     return int((value) / (float(max_val) / numBins))
 
 
+def opencv_hue_diff(h1, h2):
+    """
+    Computes HSV color diff with wraparound.
+    """
+    h_max = max(h1, h2)
+    h_min = min(h1, h2)
+    d1 = h_max - h_min
+    d2 = (360 - h_max) + h_min
+    return min(d1, d2)
+
+
 def compute_hue_diff(c1, c2):
     """
     Computes HSV color diff with wraparound.

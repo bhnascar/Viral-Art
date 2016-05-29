@@ -1,0 +1,2 @@
+face accuracy: 0.600000
+eye accuracy: 0.366667

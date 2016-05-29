@@ -9,7 +9,9 @@ functions = [
 	avg_roughness.extractFeature,
 	color_palette_feature.extractFeature,
 	palette_contrast.extractFeature,
-	face.extractFeature
+	face.extractFeature,
+	mode_hsv.extractFeature,
+	torso.extractFeature
 ]
 
 names = [
@@ -17,7 +19,9 @@ names = [
 	avg_roughness.getFeatureName,
 	color_palette_feature.getFeatureName,
 	palette_contrast.getFeatureName,
-	face.getFeatureName
+	face.getFeatureName,
+	mode_hsv.getFeatureName,
+	torso.getFeatureName
 ]
 
 # The clever way of doing this is not working yet... #

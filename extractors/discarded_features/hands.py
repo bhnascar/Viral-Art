@@ -17,8 +17,8 @@ NUM_LOC_BINS = 5
 
 def getFeatureName():
     return ["hands_exists", "hands_size"] + \
-        util.binLocFeatureNames("hands_x", NUM_LOC_BINS) + \
-        util.binLocFeatureNames("hands_y", NUM_LOC_BINS)
+        util.binFeatureNames("hands_x", NUM_LOC_BINS, 100) + \
+        util.binFeatureNames("hands_y", NUM_LOC_BINS, 100)
 
 
 def extractFeature(img):
@@ -26,6 +26,9 @@ def extractFeature(img):
 
     # convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.equalizeHist(gray)
+    cv2.imshow('img', gray)
+    cv2.waitKey(0)
 
     # find hands
     hands_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_hand.xml')
@@ -56,10 +59,10 @@ def extractFeature(img):
     # hands location, as percentage
     hands_loc_x = [0] * NUM_LOC_BINS
     hands_loc_y = [0] * NUM_LOC_BINS
-    hands_loc_x[util.getLocBinIndex(float(x + float(w) / 2) / img_w,
-                                    NUM_LOC_BINS)] = 1
-    hands_loc_y[util.getLocBinIndex(float(y + float(h) / 2) / img_h,
-                                    NUM_LOC_BINS)] = 1
+    hands_loc_x[util.getBinIndex(float(x + float(w) / 2) / img_w,
+                                 NUM_LOC_BINS, 100)] = 1
+    hands_loc_y[util.getBinIndex(float(y + float(h) / 2) / img_h,
+                                 NUM_LOC_BINS, 100)] = 1
 
     # ready the features for returning
     features = [1, hands_size] + hands_loc_x + hands_loc_y
@@ -79,7 +82,7 @@ def extractFeature(img):
 
 
 def main():
-    cv_image = cv2.imread("test_data/bond.jpg")
+    cv_image = cv2.imread("test_data/hand.jpg")
     # cv_image = imutils.resize(cv_image, width=200)
 
     print extractFeature(cv_image)
