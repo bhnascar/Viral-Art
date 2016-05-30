@@ -10,6 +10,8 @@ import matplotlib.pyplot as plt
 
 from sklearn import svm
 from sklearn import metrics
+from sklearn import linear_model
+from sklearn.feature_selection import RFE
 from sklearn.cross_validation import cross_val_predict
 
 def partition_data_for_artist(artist, features, labels, urls):
@@ -62,7 +64,11 @@ def load_data(datafile):
     dataframe = pd.read_csv(datafile)
     urls = dataframe["base_url"].tolist()
     artists = dataframe["artist"].tolist()
-    features = dataframe.iloc[:, 5:-1]
+
+    selected_features = range(7, 37)
+    # selected_features = [36, 39, 40, 41, 42, 43]
+
+    features = dataframe.iloc[:, selected_features]
     features = np.array(features)
     return features, artists, urls
 
@@ -82,11 +88,19 @@ def main(args):
     (tr_urls, tr_la, tr_ft), (te_urls, te_la, te_ft) = partition_data_for_artist(args[1], features, labels, urls)
 
     # Train SVM classifier
-    clf = svm.SVC(kernel = "rbf", C = 1e3, gamma = 1e-10)
+    clf = svm.SVC(kernel = "linear", C = 1e3, gamma = 1e-10)
+    # clf = linear_model.LinearRegression()
     clf.fit(tr_ft, tr_la);
+    print tr_ft
 
     # Run classifier
     predictions = cross_val_predict(clf, tr_ft, tr_la, cv=5)
+
+    # Use RFE model to estimate top 5 most useful attributes
+    # rfe = RFE(clf, 5)
+    # rfe = rfe.fit(tr_ft, tr_la)
+    # print(rfe.support_)
+    # print(zip(rfe.ranking_, range(1, len(rfe.ranking_))))
 
     # Compare prediction and real label
     for i in range(0, len(predictions)):
@@ -100,7 +114,7 @@ def main(args):
             print "False negative: {}".format(tr_urls[i])
 
     # Print overall accuracy
-    print "Overall accuracy: {}".format(metrics.accuracy_score(tr_la, predictions))
+    # print "Overall accuracy: {}".format(metrics.accuracy_score(tr_la, predictions))
     print """
           Note, this is a misleading accuracy report because the SVC just keeps
           predicting 0 (not a match), which means there's only like ~15/1000 mistakes.
