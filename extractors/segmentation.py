@@ -7,7 +7,7 @@ import imutils
 import util
 import os
 
-IS_DEBUG = True
+IS_DEBUG = False
 NUM_LOC_BINS = 5
 MAX_LOC_VAL = 1
 
@@ -169,8 +169,8 @@ def extractFeature(img):
                     (0, 0, 255), seg_bgr_img)
 
         plt.figure()
-        # cv2.imshow('img', seg_bgr_img)
-        # cv2.waitKey(0)
+        cv2.imshow('img', seg_bgr_img)
+        cv2.waitKey(0)
 
         return [features, seg_bgr_img]
 
@@ -185,9 +185,12 @@ def main():
 
         print filename
         cv_image = cv2.imread(path)
-        (features, img) = extractFeature(cv_image)
-        print features
-        cv2.imwrite('output/highlights/' + filename, img)
+        if IS_DEBUG:
+            (features, img) = extractFeature(cv_image)
+            print features
+            cv2.imwrite('output/highlights/' + filename, img)
+        else:
+            print extractFeature(cv_image)
 
 
 if __name__ == "__main__":
