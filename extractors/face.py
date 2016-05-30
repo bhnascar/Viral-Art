@@ -222,7 +222,7 @@ def extractFeature(img):
     features += getSmileFeatures(x, y, w, h, img, gray)
 
     assert len(features) == len(getFeatureName()), \
-        "length of features matches feature names"
+        "length of face features matches feature names"
 
     '''Display and debug'''
     if IS_DEBUG:

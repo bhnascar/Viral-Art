@@ -1,26 +1,31 @@
-import average_hsv
+import average_hsvl
 import avg_roughness
 import color_palette_feature
-import palette_contrast
 import face
+import mode_hsvl
+import palette_contrast
+import segmentation
+import torso
 
 functions = [
-	average_hsv.extractFeature,
+	average_hsvl.extractFeature,
 	avg_roughness.extractFeature,
 	color_palette_feature.extractFeature,
-	palette_contrast.extractFeature,
 	face.extractFeature,
-	mode_hsv.extractFeature,
+	mode_hsvl.extractFeature,
+	palette_contrast.extractFeature,
+	segmentation.extractFeature,
 	torso.extractFeature
 ]
 
 names = [
-	average_hsv.getFeatureName,
+	average_hsvl.getFeatureName,
 	avg_roughness.getFeatureName,
 	color_palette_feature.getFeatureName,
-	palette_contrast.getFeatureName,
 	face.getFeatureName,
-	mode_hsv.getFeatureName,
+	mode_hsvl.getFeatureName,
+	palette_contrast.getFeatureName,
+	segmentation.getFeatureName,
 	torso.getFeatureName
 ]
 

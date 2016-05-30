@@ -13,13 +13,15 @@ NUM_BINS = 5
 MAX_HUE_DIFF_VAL = 180
 MAX_SAT_DIFF_VAL = 255
 MAX_VAL_DIFF_VAL = 255
+MAX_LIGHT_DIFF_VAL = 255
 
 
 def getFeatureName():
-    return ["Color_Contrast", "Saturation_contrast", "Value_Contrast"] + \
+    return ["Color_Contrast", "Saturation_contrast", "Value_Contrast", "Light_Contrast"] + \
         util.binFeatureNames("hue_palette_diff", NUM_BINS, MAX_HUE_DIFF_VAL) + \
         util.binFeatureNames("sat_palette_diff", NUM_BINS, MAX_SAT_DIFF_VAL) + \
-        util.binFeatureNames("val_palette_diff", NUM_BINS, MAX_VAL_DIFF_VAL)
+        util.binFeatureNames("val_palette_diff", NUM_BINS, MAX_VAL_DIFF_VAL) + \
+        util.binFeatureNames("light_palette_diff", NUM_BINS, MAX_LIGHT_DIFF_VAL)
 
 
 def extractFeature(img):
@@ -36,12 +38,17 @@ def extractFeature(img):
 
     # convert to hsv
     hsv = cv2.cvtColor(np.float32([clt.cluster_centers_]), cv2.COLOR_RGB2HSV)
+    # get hls
+    hls = cv2.cvtColor(np.float32([clt.cluster_centers_]), cv2.COLOR_RGB2BGR)
+    hls = cv2.cvtColor(hls, cv2.COLOR_BGR2HLS)
 
-    # Get max value and saturation contrast
+    # Get max value, saturation, light contrast
     min_val = 255
     max_val = 0
     min_sat = 255
     max_sat = 0
+    min_light = 255
+    max_light = 0
     hue_set = set()
     for ind, val in enumerate(hsv[0]):
         h, s, v = val
@@ -51,8 +58,14 @@ def extractFeature(img):
         min_sat = min(max_sat, s)
         hue_set.add(int(round(h)))
 
+    for val in hls[0]:
+        h, l, s = val
+        max_light = max(max_light, l)
+        min_light = min(min_light, l)
+
     max_sat_diff = max_sat - min_sat
     max_val_diff = max_val - min_val
+    max_light_diff = max_light - min_light
 
     hues = list(hue_set)
     max_hue_diff = 0
@@ -77,12 +90,14 @@ def extractFeature(img):
     hue_bins = [0]*NUM_BINS
     sat_bins = [0]*NUM_BINS
     val_bins = [0]*NUM_BINS
+    light_bins = [0]*NUM_BINS
     hue_bins[util.getBinIndex(max_hue_diff, NUM_BINS, MAX_HUE_DIFF_VAL)] = 1
     sat_bins[util.getBinIndex(max_sat_diff, NUM_BINS, MAX_SAT_DIFF_VAL)] = 1
     val_bins[util.getBinIndex(max_val_diff, NUM_BINS, MAX_VAL_DIFF_VAL)] = 1
+    light_bins[util.getBinIndex(max_light_diff, NUM_BINS, MAX_LIGHT_DIFF_VAL)] = 1
 
-    features = [max_hue_diff, max_sat_diff, max_val_diff] + \
-        hue_bins + sat_bins + val_bins
+    features = [max_hue_diff, max_sat_diff, max_val_diff, max_light_diff] + \
+        hue_bins + sat_bins + val_bins + light_bins
 
     assert len(features) == len(getFeatureName()), \
         "length of palette contrast features matches feature names"
@@ -125,7 +140,7 @@ def plot_colors(hist, centroids):
 
 
 def main():
-    cv_image = cv2.imread("test_data/yuumei_profile.jpg")
+    cv_image = cv2.imread("test_data/wonder_woman.jpg")
 
     if IS_DEBUG:
         cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
