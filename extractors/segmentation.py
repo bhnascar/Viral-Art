@@ -13,12 +13,12 @@ MAX_LOC_VAL = 1
 
 
 def getFeatureName():
-    return util.binFeatureNames("max_sat_x", NUM_LOC_BINS, MAX_LOC_VAL) + \
-        util.binFeatureNames("max_sat_y", NUM_LOC_BINS, MAX_LOC_VAL) + \
-        util.binFeatureNames("max_light_x", NUM_LOC_BINS, MAX_LOC_VAL) + \
-        util.binFeatureNames("max_light_y", NUM_LOC_BINS, MAX_LOC_VAL) + \
-        util.binFeatureNames("max_val_x", NUM_LOC_BINS, MAX_LOC_VAL) + \
-        util.binFeatureNames("max_val_y", NUM_LOC_BINS, MAX_LOC_VAL) + \
+    return util.binFeatureNames("max_sat_x", NUM_LOC_BINS, MAX_LOC_VAL*100) + \
+        util.binFeatureNames("max_sat_y", NUM_LOC_BINS, MAX_LOC_VAL*100) + \
+        util.binFeatureNames("max_light_x", NUM_LOC_BINS, MAX_LOC_VAL*100) + \
+        util.binFeatureNames("max_light_y", NUM_LOC_BINS, MAX_LOC_VAL*100) + \
+        util.binFeatureNames("max_val_x", NUM_LOC_BINS, MAX_LOC_VAL*100) + \
+        util.binFeatureNames("max_val_y", NUM_LOC_BINS, MAX_LOC_VAL*100) + \
         ["highlight_sat_size", "highlight_light_size", "highlight_val_size"] + \
         ["seg_sat_contrast", "seg_light_contrast", "seg_val_contrast"]
 
