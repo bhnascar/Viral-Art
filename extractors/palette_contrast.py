@@ -31,7 +31,7 @@ def extractFeature(img):
     img = img.reshape((img.shape[0] * img.shape[1], 3))
 
     # run kmeans
-    clt = KMeans(n_clusters=10)
+    clt = KMeans(n_clusters=8)
     clt.fit(img)
 
     # convert to hsv

@@ -94,7 +94,5 @@ def main():
     # cv_image = cv2.imread("test_data/rey.png")
     # cv_image = imutils.resize(cv_image, width=200)
 
-    print extractFeature(cv_image)
-
 if __name__ == "__main__":
     main()
