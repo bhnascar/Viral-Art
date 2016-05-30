@@ -17,7 +17,7 @@ def binFeatureNames(prefix, numBins, max_val):
     """
     Returns a list of names of the bucketed features.
     """
-    multiple = int(max_val / numBins)
+    multiple = int(float(max_val) / numBins)
     return [prefix + ('_%d' % (i*multiple)) for i in range(1, numBins+1)]
 
 
