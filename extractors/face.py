@@ -23,7 +23,8 @@ import os
 
 IS_DEBUG = False
 NUM_LOC_BINS = 5
-MAX_LOC_VAL = 100
+MAX_LOC_VAL = 1
+
 
 def getEyeFeatureNames():
     return ["eye_size", "number_of_visible_eyes"] + \
@@ -48,20 +49,22 @@ def getFeatureName():
 
 
 def getSmileFeatures(fx, fy, fw, fh, img, gray):
-    smile_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_smile.xml')
+    '''doesn't work very well'''
 
-    # for debugging
-    if IS_DEBUG:
-        smile_cascade = cv2.CascadeClassifier('cascades/haarcascade_smile.xml')
+    # smile_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_smile.xml')
 
-    # smile detection
-    smile = smile_cascade.detectMultiScale(
-        gray,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(30, 30),
-        flags = 0
-    )
+    # # for debugging
+    # if IS_DEBUG:
+    #     smile_cascade = cv2.CascadeClassifier('cascades/haarcascade_smile.xml')
+
+    # # smile detection
+    # smile = smile_cascade.detectMultiScale(
+    #     gray,
+    #     scaleFactor=1.1,
+    #     minNeighbors=5,
+    #     minSize=(30, 30),
+    #     flags = 0
+    # )
     return []
 
 
@@ -138,9 +141,9 @@ def getEyeFeatures(fx, fy, fw, fh, img, gray):
     # placement of eye in the image
     eye_loc_x = [0]*NUM_LOC_BINS
     eye_loc_y = [0]*NUM_LOC_BINS
-    eye_loc_x[util.getBinIndex(100*(float(avg_x) / img_w),
+    eye_loc_x[util.getBinIndex(float(avg_x) / img_w,
                                NUM_LOC_BINS, MAX_LOC_VAL)] = 1
-    eye_loc_y[util.getBinIndex(100*(float(avg_y) / img_h),
+    eye_loc_y[util.getBinIndex(float(avg_y) / img_h,
                                NUM_LOC_BINS, MAX_LOC_VAL)] = 1
 
     if IS_DEBUG:
@@ -148,7 +151,8 @@ def getEyeFeatures(fx, fy, fw, fh, img, gray):
         for (ex, ey, ew, eh) in eyes:
             cv2.rectangle(img, (ex, ey), (ex+ew, ey+eh), (0, 255, 0), 2)
 
-    features = [eye_size, len(eyes)] + eye_loc_x + eye_loc_y
+    features = [eye_size, util.normalize(len(eyes), 0, 2)] + \
+        eye_loc_x + eye_loc_y
 
     assert len(features) == len(getEyeFeatureNames()), \
         "length of eye features matches feature names"
@@ -210,9 +214,9 @@ def extractFeature(img):
     # face location, as percentage
     face_loc_x = [0] * NUM_LOC_BINS
     face_loc_y = [0] * NUM_LOC_BINS
-    face_loc_x[util.getBinIndex(100*(float(x + float(w) / 2) / img_w),
+    face_loc_x[util.getBinIndex((float(x + float(w) / 2) / img_w),
                                 NUM_LOC_BINS, MAX_LOC_VAL)] = 1
-    face_loc_y[util.getBinIndex(100*(float(y + float(h) / 2) / img_h),
+    face_loc_y[util.getBinIndex((float(y + float(h) / 2) / img_h),
                                 NUM_LOC_BINS, MAX_LOC_VAL)] = 1
 
     # ready the features for returning

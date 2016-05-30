@@ -139,11 +139,17 @@ def extractFeature(img):
     light_size = float(cluster_dict[max_light_label].num_pixels) / total_pixels
     val_size = float(cluster_dict[max_val_label].num_pixels) / total_pixels
 
+    # get contrast features
+    mini = 20   # from manual inspection
+    max_sat_diff = util.normalize(max_sat - min_sat, mini, util.MAX_SAT)
+    max_light_diff = util.normalize(max_light - min_light, mini, util.MAX_LIGHT)
+    max_val_diff = util.normalize(max_val - min_val, mini, util.MAX_VAL)
+
     features = max_sat_locx_bin + max_sat_locy_bin + \
         max_light_locx_bin + max_light_locy_bin + \
         max_val_locx_bin + max_val_locy_bin + \
         [sat_size, light_size, val_size] + \
-        [max_sat - min_sat, max_light - min_light, max_val - min_val]
+        [max_sat_diff, max_light_diff, max_val_diff]
 
     assert len(features) == len(getFeatureName()), \
         "length of segmentation features matches feature names"

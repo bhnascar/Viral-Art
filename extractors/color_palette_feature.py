@@ -8,17 +8,15 @@ import cv2
 import imutils
 import util
 
+NUM_CLUSTERS = 8
 IS_DEBUG = False
 NUM_BINS = 6
-MAX_HUE_VAL = 360  # 0-360
-MAX_SAT_VAL = 255  # 0-255
-MAX_VAL_VAL = 255  # 0-255
 
 
 def getFeatureName():
-    return util.binFeatureNames("HUE_PALETTE", NUM_BINS, MAX_HUE_VAL) + \
-        util.binFeatureNames("SAT_PALETTE", NUM_BINS, MAX_SAT_VAL) + \
-        util.binFeatureNames("VAL_PALETTE", NUM_BINS, MAX_VAL_VAL) + \
+    return util.binFeatureNames("HUE_PALETTE", NUM_BINS, util.MAX_HUE) + \
+        util.binFeatureNames("SAT_PALETTE", NUM_BINS, util.MAX_SAT) + \
+        util.binFeatureNames("VAL_PALETTE", NUM_BINS, util.MAX_VAL) + \
         ["num_unique_hues", "num_unique_sat", "num_unique_vals"]
 
 
@@ -31,12 +29,12 @@ def extractFeature(img):
     img = img.reshape((img.shape[0] * img.shape[1], 3))
 
     # run kmeans
-    clt = KMeans(n_clusters=8)
+    clt = KMeans(n_clusters=NUM_CLUSTERS)
     clt.fit(img)
 
     # convert to hsv
     hsv = cv2.cvtColor(np.float32([clt.cluster_centers_]),
-                           cv2.COLOR_RGB2HSV)
+                       cv2.COLOR_RGB2HSV)
 
     # create the palette histograms
     hue_palette = [0]*NUM_BINS
@@ -46,13 +44,13 @@ def extractFeature(img):
     for c in hsv[0]:
         h, s, v = c
         ''' BINARY OR HISTOGRAM? '''
-        hue_palette[util.getBinIndex(h, NUM_BINS, MAX_HUE_VAL)] = 1
-        sat_palette[util.getBinIndex(s, NUM_BINS, MAX_SAT_VAL)] = 1
-        val_palette[util.getBinIndex(v, NUM_BINS, MAX_VAL_VAL)] = 1
+        hue_palette[util.getBinIndex(h, NUM_BINS, util.MAX_HUE)] = 1
+        sat_palette[util.getBinIndex(s, NUM_BINS, util.MAX_SAT)] = 1
+        val_palette[util.getBinIndex(v, NUM_BINS, util.MAX_VAL)] = 1
 
-    num_unique_hues = sum(hue_palette)
-    num_unique_sat = sum(sat_palette)
-    num_unique_vals = sum(val_palette)
+    num_unique_hues = util.normalize(sum(hue_palette), 0, NUM_BINS)
+    num_unique_sat = util.normalize(sum(sat_palette), 0, NUM_BINS)
+    num_unique_vals = util.normalize(sum(val_palette), 0, NUM_BINS)
 
     # return the features
     features = hue_palette + sat_palette + val_palette + \
@@ -82,7 +80,7 @@ def centroid_histogram(clt):
     # grab the number of different clusters and create a histogram
     # based on the number of pixels assigned to each cluster
     numLabels = np.arange(0, len(np.unique(clt.labels_)) + 1)
-    (hist, _) = np.histogram(clt.labels_, bins = numLabels)
+    (hist, _) = np.histogram(clt.labels_, bins=numLabels)
 
     # normalize the histogram, such that it sums to one
     hist = hist.astype("float")
@@ -112,7 +110,7 @@ def plot_colors(hist, centroids):
 
 
 def main():
-    cv_image = cv2.imread("test_data/yuumei_profile.jpg")
+    cv_image = cv2.imread("test_data/wonder_woman.jpg")
 
     if IS_DEBUG:
         cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)

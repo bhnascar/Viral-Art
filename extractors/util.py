@@ -1,3 +1,18 @@
+MIN_HUE = 0
+MIN_SAT = 0
+MIN_VAL = 0
+MIN_LIGHT = 0
+MAX_HUE = 360
+MAX_SAT = 255
+MAX_VAL = 255
+MAX_LIGHT = 255
+
+
+# returns the value normalize to 0-1
+def normalize(value, minimum, maximum):
+    return float(value - minimum) / (maximum - minimum)
+
+
 def binFeatureNames(prefix, numBins, max_val):
     """
     Returns a list of names of the bucketed features.
@@ -9,9 +24,11 @@ def binFeatureNames(prefix, numBins, max_val):
 def getBinIndex(value, numBins, max_val):
     """
     Returns the bucket index of the bin the value should go in.
-    Intended for use for the location features.
     """
-    return int((value) / (float(max_val) / numBins))
+    if value == max_val:
+        return numBins - 1
+    else:
+        return int((value) / (float(max_val) / numBins))
 
 
 def opencv_hue_diff(h1, h2):

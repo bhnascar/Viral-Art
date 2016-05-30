@@ -14,7 +14,7 @@ import os
 
 IS_DEBUG = False
 NUM_LOC_BINS = 5
-MAX_VAL = 100
+MAX_VAL = 1
 
 
 def getFeatureName():
@@ -59,9 +59,9 @@ def extractFeature(img):
     # torso location, as percentage
     torso_loc_x = [0] * NUM_LOC_BINS
     torso_loc_y = [0] * NUM_LOC_BINS
-    torso_loc_x[util.getBinIndex(100*(float(x + float(w) / 2) / img_w),
+    torso_loc_x[util.getBinIndex(float(x + float(w) / 2) / img_w,
                                  NUM_LOC_BINS, MAX_VAL)] = 1
-    torso_loc_y[util.getBinIndex(100*(float(y + float(h) / 2) / img_h),
+    torso_loc_y[util.getBinIndex(float(y + float(h) / 2) / img_h,
                                  NUM_LOC_BINS, MAX_VAL)] = 1
 
     # ready the features for returning

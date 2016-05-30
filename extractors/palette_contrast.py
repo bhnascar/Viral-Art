@@ -7,6 +7,7 @@ import matplotlib.pyplot as plt
 import cv2
 import imutils
 import util
+import os
 
 IS_DEBUG = False
 NUM_BINS = 5
@@ -75,6 +76,12 @@ def extractFeature(img):
             max_hue_diff = max(max_hue_diff,
                                util.opencv_hue_diff(hues[i], hues[j]))
 
+    # normalize the value
+    max_hue_diff = util.normalize(max_hue_diff, 0, MAX_HUE_DIFF_VAL)
+    max_sat_diff = util.normalize(max_sat_diff, 0, MAX_SAT_DIFF_VAL)
+    max_val_diff = util.normalize(max_val_diff, 0, MAX_VAL_DIFF_VAL)
+    max_light_diff = util.normalize(max_light_diff, 0, MAX_LIGHT_DIFF_VAL)
+
     if IS_DEBUG:
         # build a histogram of clusters and then create a figure
         # representing the number of pixels labeled to each color
@@ -140,16 +147,24 @@ def plot_colors(hist, centroids):
 
 
 def main():
-    cv_image = cv2.imread("test_data/wonder_woman.jpg")
+    for filename in os.listdir('test_data/'):
+        path = 'test_data/' + filename
+        if os.path.isdir(path):
+            continue
+        print filename
+        cv_image = cv2.imread(path)
+        print extractFeature(cv_image)
 
-    if IS_DEBUG:
-        cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
-        plt.figure()
-        plt.axis("off")
-        plt.imshow(cv_image)
-        cv_image = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
+    # cv_image = cv2.imread("test_data/wonder_woman.jpg")
 
-    print extractFeature(cv_image)
+    # if IS_DEBUG:
+    #     cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)
+    #     plt.figure()
+    #     plt.axis("off")
+    #     plt.imshow(cv_image)
+    #     cv_image = cv2.cvtColor(cv_image, cv2.COLOR_RGB2BGR)
+
+    # print extractFeature(cv_image)
 
 if __name__ == "__main__":
     main()
