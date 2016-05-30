@@ -34,8 +34,8 @@ def getEyeFeatureNames():
 
 def getFaceFeatureNames():
     return ["is_frontal_face", "is_profile_face", "face_size"] + \
-        util.binFeatureNames("face_x", NUM_LOC_BINS, MAX_LOC_VAL) + \
-        util.binFeatureNames("face_y", NUM_LOC_BINS, MAX_LOC_VAL)
+        util.binFeatureNames("face_x", NUM_LOC_BINS, MAX_LOC_VAL*100) + \
+        util.binFeatureNames("face_y", NUM_LOC_BINS, MAX_LOC_VAL*100)
 
 
 def getSmileFeatureNames():

@@ -25,7 +25,7 @@ def extractFeature(img):
     # normalize
     avg_h = float(avg_h) / util.MAX_HUE
     avg_s = float(avg_s) / util.MAX_SAT
-    avg_v = float(avg_v) / util.MAX_VAl
+    avg_v = float(avg_v) / util.MAX_VAL
     avg_l = float(avg_l) / util.MAX_LIGHT
 
     return [avg_h, avg_s, avg_v, avg_l]
