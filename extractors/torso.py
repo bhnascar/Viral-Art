@@ -19,8 +19,8 @@ MAX_VAL = 1
 
 def getFeatureName():
     return ["torso_exists", "torso_size"] + \
-        util.binFeatureNames("torso_x", NUM_LOC_BINS, MAX_VAL) + \
-        util.binFeatureNames("torso_y", NUM_LOC_BINS, MAX_VAL)
+        util.binFeatureNames("torso_x", NUM_LOC_BINS, MAX_VAL*100) + \
+        util.binFeatureNames("torso_y", NUM_LOC_BINS, MAX_VAL*100)
 
 
 def extractFeature(img):
@@ -82,6 +82,7 @@ def extractFeature(img):
 
 
 def main():
+    print getFeatureName()
     for filename in os.listdir('test_data/'):
         path = 'test_data/' + filename
         if os.path.isdir(path):

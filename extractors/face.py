@@ -28,8 +28,8 @@ MAX_LOC_VAL = 1
 
 def getEyeFeatureNames():
     return ["eye_size", "number_of_visible_eyes"] + \
-        util.binFeatureNames("eye_x_in_img", NUM_LOC_BINS, MAX_LOC_VAL) + \
-        util.binFeatureNames("eye_y_in_img", NUM_LOC_BINS, MAX_LOC_VAL)
+        util.binFeatureNames("eye_x_in_img", NUM_LOC_BINS, MAX_LOC_VAL*100) + \
+        util.binFeatureNames("eye_y_in_img", NUM_LOC_BINS, MAX_LOC_VAL*100)
 
 
 def getFaceFeatureNames():
