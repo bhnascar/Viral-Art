@@ -27,6 +27,7 @@ def extractFeature(img):
 
     # convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.equalizeHist(gray)
 
     # find fullbody
     fullbody_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_fullbody.xml')

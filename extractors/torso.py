@@ -10,10 +10,11 @@ TODO: look into training a Haar cascade for more cartoony styles
 import cv2
 import util
 import imutils
+import os
 
-IS_DEBUG = True
+IS_DEBUG = False
 NUM_LOC_BINS = 5
-MAX_VAL = 100
+MAX_VAL = 1
 
 
 def getFeatureName():
@@ -27,6 +28,7 @@ def extractFeature(img):
 
     # convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    # gray = cv2.equalizeHist(gray)
 
     # find torso
     torso_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_headshoulders.xml')
@@ -40,7 +42,7 @@ def extractFeature(img):
         gray,
         scaleFactor=1.3,
         minNeighbors=5,
-        minSize=(30, 30),
+        minSize=(100, 100),
         flags = 0
         )
 
@@ -57,9 +59,9 @@ def extractFeature(img):
     # torso location, as percentage
     torso_loc_x = [0] * NUM_LOC_BINS
     torso_loc_y = [0] * NUM_LOC_BINS
-    torso_loc_x[util.getBinIndex(100*(float(x + float(w) / 2) / img_w),
+    torso_loc_x[util.getBinIndex(float(x + float(w) / 2) / img_w,
                                  NUM_LOC_BINS, MAX_VAL)] = 1
-    torso_loc_y[util.getBinIndex(100*(float(y + float(h) / 2) / img_h),
+    torso_loc_y[util.getBinIndex(float(y + float(h) / 2) / img_h,
                                  NUM_LOC_BINS, MAX_VAL)] = 1
 
     # ready the features for returning
@@ -80,10 +82,17 @@ def extractFeature(img):
 
 
 def main():
-    cv_image = cv2.imread("test_data/rey.png")
-    # cv_image = imutils.resize(cv_image, width=200)
+    for filename in os.listdir('test_data/'):
+        path = 'test_data/' + filename
+        if os.path.isdir(path):
+            continue
 
-    print extractFeature(cv_image)
+        print filename
+        cv_image = cv2.imread(path)
+        print extractFeature(cv_image)
+
+    # cv_image = cv2.imread("test_data/rey.png")
+    # cv_image = imutils.resize(cv_image, width=200)
 
 if __name__ == "__main__":
     main()

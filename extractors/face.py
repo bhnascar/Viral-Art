@@ -19,10 +19,12 @@ import cv2
 import util
 import imutils
 import numpy as np
+import os
 
 IS_DEBUG = False
 NUM_LOC_BINS = 5
-MAX_LOC_VAL = 100
+MAX_LOC_VAL = 1
+
 
 def getEyeFeatureNames():
     return ["eye_size", "number_of_visible_eyes"] + \
@@ -47,20 +49,22 @@ def getFeatureName():
 
 
 def getSmileFeatures(fx, fy, fw, fh, img, gray):
-    smile_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_smile.xml')
+    '''doesn't work very well'''
 
-    # for debugging
-    if IS_DEBUG:
-        smile_cascade = cv2.CascadeClassifier('cascades/haarcascade_smile.xml')
+    # smile_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_smile.xml')
 
-    # smile detection
-    smile = smile_cascade.detectMultiScale(
-        gray,
-        scaleFactor=1.1,
-        minNeighbors=5,
-        minSize=(30, 30),
-        flags = 0
-    )
+    # # for debugging
+    # if IS_DEBUG:
+    #     smile_cascade = cv2.CascadeClassifier('cascades/haarcascade_smile.xml')
+
+    # # smile detection
+    # smile = smile_cascade.detectMultiScale(
+    #     gray,
+    #     scaleFactor=1.1,
+    #     minNeighbors=5,
+    #     minSize=(30, 30),
+    #     flags = 0
+    # )
     return []
 
 
@@ -108,15 +112,19 @@ def getEyeFeatures(fx, fy, fw, fh, img, gray):
     # for debugging
     if IS_DEBUG:
         open_eyes_cascade = cv2.CascadeClassifier('cascades/haarcascade_eye.xml')
-
+    # print 'hi'
     # eye detection
+    # eyes = open_eyes_cascade.detectMultiScale3(
     eyes = open_eyes_cascade.detectMultiScale(
         gray,
         scaleFactor=1.1,
-        minNeighbors=5,
         minSize=(30, 30),
-        flags = 0
+        minNeighbors=5
+        # outputRejectLevels = True
     )
+    # weights = eyes[2]
+    # eyes = eyes[0]
+    # print weights
 
     eyes = removeExtraneousEyes(eyes, fx, fy, fw, fh)
 
@@ -133,9 +141,9 @@ def getEyeFeatures(fx, fy, fw, fh, img, gray):
     # placement of eye in the image
     eye_loc_x = [0]*NUM_LOC_BINS
     eye_loc_y = [0]*NUM_LOC_BINS
-    eye_loc_x[util.getBinIndex(100*(float(avg_x) / img_w),
+    eye_loc_x[util.getBinIndex(float(avg_x) / img_w,
                                NUM_LOC_BINS, MAX_LOC_VAL)] = 1
-    eye_loc_y[util.getBinIndex(100*(float(avg_y) / img_h),
+    eye_loc_y[util.getBinIndex(float(avg_y) / img_h,
                                NUM_LOC_BINS, MAX_LOC_VAL)] = 1
 
     if IS_DEBUG:
@@ -143,7 +151,8 @@ def getEyeFeatures(fx, fy, fw, fh, img, gray):
         for (ex, ey, ew, eh) in eyes:
             cv2.rectangle(img, (ex, ey), (ex+ew, ey+eh), (0, 255, 0), 2)
 
-    features = [eye_size, len(eyes)] + eye_loc_x + eye_loc_y
+    features = [eye_size, util.normalize(len(eyes), 0, 2)] + \
+        eye_loc_x + eye_loc_y
 
     assert len(features) == len(getEyeFeatureNames()), \
         "length of eye features matches feature names"
@@ -158,6 +167,7 @@ def extractFeature(img):
     img_h, img_w = img.shape[:2]
     # convert to grayscale
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+    gray = cv2.equalizeHist(gray)
 
     # find faces
     front_face_cascade = cv2.CascadeClassifier('extractors/cascades/haarcascade_frontalface_default.xml')
@@ -204,9 +214,9 @@ def extractFeature(img):
     # face location, as percentage
     face_loc_x = [0] * NUM_LOC_BINS
     face_loc_y = [0] * NUM_LOC_BINS
-    face_loc_x[util.getBinIndex(100*(float(x + float(w) / 2) / img_w),
+    face_loc_x[util.getBinIndex((float(x + float(w) / 2) / img_w),
                                 NUM_LOC_BINS, MAX_LOC_VAL)] = 1
-    face_loc_y[util.getBinIndex(100*(float(y + float(h) / 2) / img_h),
+    face_loc_y[util.getBinIndex((float(y + float(h) / 2) / img_h),
                                 NUM_LOC_BINS, MAX_LOC_VAL)] = 1
 
     # ready the features for returning
@@ -216,24 +226,43 @@ def extractFeature(img):
     features += getSmileFeatures(x, y, w, h, img, gray)
 
     assert len(features) == len(getFeatureName()), \
-        "length of features matches feature names"
+        "length of face features matches feature names"
 
     '''Display and debug'''
     if IS_DEBUG:
         cv2.rectangle(img, (x, y), (x+w, y+h), (255, 0, 0), 2)
-        roi_gray = gray[y:y+h, x:x+w]
-        roi_color = img[y:y+h, x:x+w]
         cv2.imshow('img', img)
         cv2.waitKey(0)
+        return (features, img, gray)
 
     return features
 
 
 def main():
-    cv_image = cv2.imread("test_data/rey.png")
-    # cv_image = imutils.resize(cv_image, width=200)
+    correct_face_list = []
+    correct_eye_list = []
+    for filename in os.listdir('test_data/'):
+        path = 'test_data/' + filename
+        if os.path.isdir(path):
+            continue
 
-    print extractFeature(cv_image)
+        print filename
+        cv_image = cv2.imread(path)
+        blah = extractFeature(cv_image)
+        if len(blah) == 3:
+            (features, img, filtered) = blah
+            print features
+            cv2.imwrite('gray_output/' + filename, img)
+            cv2.imwrite('gray_output/filter/' + filename, filtered)
+
+    #     print 'correct face or no? [1/0]'
+    #     correct_face_list.append(int(raw_input()))
+    #     print 'correct eyes or no? [2/1/0]'
+    #     correct_eye_list.append(int(raw_input()))
+
+    # print "face accuracy: %f" % (float(sum(correct_face_list)) / len(correct_face_list))
+    # print "eye accuracy: %f" % (float(sum(correct_eye_list)) / (2*len(correct_eye_list)))
+
 
 if __name__ == "__main__":
     main()
