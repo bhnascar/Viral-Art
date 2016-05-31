@@ -60,9 +60,12 @@ def get_image_data(url):
     """
     img_name_index = url.rfind("/")
     img_name = url[img_name_index + 1:]
-    if not os.path.isfile(WORKSPACE_PATH + img_name):
-        urllib.urlretrieve(url, WORKSPACE_PATH + img_name)
-    return cv2.imread(WORKSPACE_PATH + img_name)
+    try:
+        if not os.path.isfile(WORKSPACE_PATH + img_name):
+            urllib.urlretrieve(url, WORKSPACE_PATH + img_name)
+        return cv2.imread(WORKSPACE_PATH + img_name)
+    except:
+        return None
 
 def update_images(conn, cur, filters = None, emptyOnly = False):
     """
@@ -78,8 +81,9 @@ def update_images(conn, cur, filters = None, emptyOnly = False):
         imgID = row[0]
         url = row[1]
         img = get_image_data(url);
-        print "Processing {}...".format(url)
-        run_extractors(conn, cur, img, imgID, filters)
+        if img is not None:
+            print "Processing {}...".format(url)
+            run_extractors(conn, cur, img, imgID, filters)
 
 def main(args):
     """
