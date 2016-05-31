@@ -45,7 +45,7 @@ def partition_data_for_artist(artist, features, labels, urls):
             other_data = np.vstack([other_data, feature])
 
     (artist_rows, _) = artist_data.shape
-    (other_rows, _) = other_data.shape;
+    (other_rows, _) = other_data.shape
 
     # Take half of the artist's works and half of others' to train
     train_urls = artist_urls[:artist_rows/2] + other_urls[:other_rows/2]
@@ -61,7 +61,7 @@ def partition_data_for_artist(artist, features, labels, urls):
 
 
 def forest(train_features, train_labels, test_features, test_labels):
-    model = ensemble.RandomForestClassifier(max_depth=5)
+    model = ensemble.RandomForestClassifier()
     model.fit(train_features, train_labels)
     test_results = model.predict(test_features)
     train_results = model.predict(train_features)
@@ -85,6 +85,25 @@ def naive_bayes(train_features, train_labels, test_features, test_labels):
     return (test_results, train_results)
 
 
+def logistic(train_features, train_labels, test_features, test_labels):
+    # Train SVM classifier
+    model = linear_model.LogisticRegressionCV(penalty='l1', solver='liblinear')
+    model.fit(train_features, train_labels)
+    test_results = model.predict(test_features)
+    train_results = model.predict(train_features)
+
+    print "coefficients"
+    temp = []
+    for index, val in enumerate(model.coef_[0]):
+        if val > 0.001:
+            temp.append((index, val))
+    print sorted(temp, key=lambda x: x[1])
+
+    # print model.coef_
+
+    return (test_results, train_results)
+
+
 def svc(train_features, train_labels, test_features, test_labels):
     """
     Trains a support vector mahcine on the given training data
@@ -92,7 +111,7 @@ def svc(train_features, train_labels, test_features, test_labels):
     """
     # Train SVM classifier
     rbf_svc = svm.SVC(class_weight='balanced')
-    search_params = {'kernel':['rbf'], 'C':[1, 10, 100, 1000], 'gamma': [0.000001, 0.0001, 0.01, 1, 10, 100]}
+    search_params = {'kernel':['poly'], 'C':[1, 10, 100, 1000], 'gamma': [0.000001, 0.0001, 0.01, 1, 10, 100]}
     svm_cv = grid_search.GridSearchCV(rbf_svc, param_grid=search_params, cv=5, n_jobs=1, verbose=5)
     svm_cv.fit(train_features, train_labels)
     # print(svm_cv.best_params_)
@@ -107,17 +126,16 @@ def load_data(datafile):
     Loads feature and classification data from the given file.
     Returns a tuple of (features, labels) where both are
     features is an NP array and labels is a list.
-    """ 
+    """
     # Read data
     dataframe = pd.read_csv(datafile)
     urls = dataframe["base_url"].tolist()
     artists = dataframe["artist"].tolist()
 
-    selected_features = range(7, 37)
-    # selected_features = [36, 39, 40, 41, 42, 43]
+    dataframe = dataframe.drop("artist", axis=1)
+    dataframe = dataframe.iloc[:, 5:]
+    features = dataframe.values
 
-    features = dataframe.iloc[:, selected_features]
-    features = np.array(features)
     return features, artists, urls
 
 
@@ -136,11 +154,38 @@ def main(args):
         return
 
     features, labels, urls = load_data(features_file)
-    (tr_urls, train_labels, train_features), (te_urls, test_labels, test_features) = partition_data_for_artist(args[1], features, labels, urls)
+    (train_urls, train_labels, train_features), (test_urls, test_labels, test_features) = partition_data_for_artist(args[1], features, labels, urls)
 
-    test_results, train_results = forest(train_features, train_labels, test_features, test_labels)
+    # test_results, train_results = logistic(train_features, train_labels, test_features, test_labels)
+    # test_results, train_results = forest(train_features, train_labels, test_features, test_labels)
     # test_results, train_results = naive_bayes(train_features, train_labels, test_features, test_labels)
-    # test_results, train_results = svc(train_features, train_labels, test_features, test_labels)
+    test_results, train_results = svc(train_features, train_labels, test_features, test_labels)
+
+    tp = []
+    fp = []
+    fn = []
+    tn = []
+    for i in range(len(test_results)):
+        if test_results[i] == 1:
+            if test_labels[i] == 1:
+                tp.append(test_urls[i])
+            else:
+                fp.append(test_urls[i])
+        else:
+            if test_labels[i] == 0:
+                tn.append(test_urls[i])
+            else:
+                fn.append(test_urls[i])
+
+    print "TP"
+    print tp
+    print "FP"
+    print fp
+    print "FN"
+    print fn
+    # print "TN"
+    # print tn
+
 
     print "TESTING RESULTS"
     print "Scores", metrics.classification_report(test_labels, test_results)

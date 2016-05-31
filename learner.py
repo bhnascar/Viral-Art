@@ -15,8 +15,7 @@ from sklearn import tree
 from sklearn import svm
 from sklearn import ensemble
 from sklearn import grid_search
-from sklearn import linear_model
-from sklearn.cross_validation import cross_val_predict
+from sklearn import linear_model, cross_validation
 from sklearn.preprocessing import PolynomialFeatures
 
 DEFAULT_DATA_FILE = "output/features.txt"
@@ -27,7 +26,6 @@ def cap_results(train_results):
     for i in range(len(train_results)):
         temp = min(1.0, train_results[i])
         temp = max(0.0, temp)
-        print temp
         retval.append(temp)
     return retval
 
@@ -109,8 +107,8 @@ def svr(train_features, train_labels, test_features, test_labels):
     and then runs it against the test data. Returns the result.
     """
     rbf_svr = svm.SVR()
-    search_params = {'kernel':['rbf'], 'C':[1, 10, 100, 1000], 'gamma': [0.000001, 0.0001, 0.01, 1, 10, 100]}
-    svm_cv = grid_search.GridSearchCV(rbf_svr, param_grid=search_params, cv=5, n_jobs=1, verbose=5)
+    search_params = {'kernel':['poly'], 'C':[1, 10, 100, 1000], 'gamma': [0.000001, 0.0001, 0.01, 1, 10, 100]}
+    svm_cv = grid_search.GridSearchCV(rbf_svr, param_grid=search_params, cv=5, n_jobs=1, verbose=5, scoring='mean_absolute_error')
     svm_cv.fit(train_features, train_labels)
     print(svm_cv.best_params_)
 
@@ -124,11 +122,13 @@ def linear_regressor(train_features, train_labels, test_features, test_labels):
     Trains a linear regressor on the given training data and then
     runs it against the test data. Returns the result.
     """
-    lr = linear_model.LassoCV(verbose=True, n_jobs=-1)
+    # lr = linear_model.RANSACRegressor(min_samples=2)
+    # lr = linear_model.RidgeCV()
+    # lr = linear_model.LassoCV(verbose=True, n_jobs=-1)
     lr.fit(train_features, train_labels)
-    test_results = cross_val_predict(lr, test_features, test_labels, cv=5)
-    test_results[test_results < 0] = 0
-    return test_results
+    test_results = lr.predict(test_features)
+    train_results = lr.predict(train_features)
+    return test_results, train_results
 
 
 def partition_data(features, labels):
@@ -206,14 +206,19 @@ def main(args):
         features, labels, feature_names = load_data()  # using default features file
 
     # Partition into training and test datasets
-    (train_features, train_labels), (test_features, test_labels) = partition_data(features, labels)
+    train_features, test_features, train_labels, test_labels = cross_validation.train_test_split(features, labels, test_size=0.33)
 
      # Linear regression
     # test_results, train_results = boost(train_features, train_labels, test_features, test_labels)
-    test_results, train_results = decision_tree(train_features, train_labels, test_features, test_labels, feature_names)
+    # test_results, train_results = decision_tree(train_features, train_labels, test_features, test_labels, feature_names)
     # test_results, train_results = forest(train_features, train_labels, test_features, test_labels)
-    # test_results, train_results = svr(train_features, train_labels, test_features, test_labels)
-    # test_results = linear_regressor(train_features, train_labels, test_features, test_labels)
+    test_results, train_results = svr(train_features, train_labels, test_features, test_labels)
+    # test_results, train_results = linear_regressor(train_features, train_labels, test_features, test_labels)
+
+    print "test result", metrics.mean_squared_error(test_labels, test_results)
+    print "test r2", metrics.r2_score(test_labels, test_results)
+    print "train result", metrics.mean_squared_error(train_labels, train_results)
+    print "train r2", metrics.r2_score(train_labels, train_results)
 
     # Plot output
     fig, ax = plt.subplots()
