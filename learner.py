@@ -6,40 +6,130 @@ import sys
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import math
+import pydot
 
+from sklearn.externals.six import StringIO
+from sklearn import metrics
+from sklearn import tree
 from sklearn import svm
+from sklearn import ensemble
+from sklearn import grid_search
 from sklearn import linear_model
 from sklearn.cross_validation import cross_val_predict
+from sklearn.preprocessing import PolynomialFeatures
 
 DEFAULT_DATA_FILE = "output/features.txt"
 
-def compute_score(labels, results):
-    """
-    Computes a score for the regression given the actual
-    labels and the predicted labels.
-    """
-    return np.sum(np.abs(np.divide(results - np.array(labels), np.array(labels))))
+
+def cap_results(train_results):
+    retval = []
+    for i in range(len(train_results)):
+        temp = min(1.0, train_results[i])
+        temp = max(0.0, temp)
+        print temp
+        retval.append(temp)
+    return retval
+
+
+def boost(train_features, train_labels, test_features, test_labels):
+    regressor = ensemble.GradientBoostingRegressor()
+    regressor.fit(train_features, train_labels)
+
+    test_results = regressor.predict(test_features)
+    train_results = regressor.predict(train_features)
+
+    print "test result", metrics.mean_squared_error(test_labels, test_results)
+    print "test r2", metrics.r2_score(test_labels, test_results)
+    print "train result", metrics.mean_squared_error(train_labels, train_results)
+    print "train r2", metrics.r2_score(train_labels, train_results)
+
+    return (test_results, train_results)
+
+
+def decision_tree(train_features, train_labels, test_features, test_labels, feature_names):
+    regressor = tree.DecisionTreeRegressor()
+    regressor.fit(train_features, train_labels)
+
+    test_results = cap_results(regressor.predict(test_features))
+    train_results = cap_results(regressor.predict(train_features))
+
+    print "test result", metrics.mean_squared_error(test_labels, test_results)
+    print "test r2", metrics.r2_score(test_labels, test_results)
+    print "train result", metrics.mean_squared_error(train_labels, train_results)
+    print "train r2", metrics.r2_score(train_labels, train_results)
+
+    # print "importances"
+    # temp = []
+    # for index, val in enumerate(regressor.feature_importances_):
+    #     if val > 0.001:
+    #         temp.append((index, val))
+    # print sorted(temp, key=lambda x: x[1])
+
+    '''graph stuff'''
+    dot_data = StringIO()
+    tree.export_graphviz(regressor, out_file=dot_data,
+                        special_characters=True,
+                        class_names=regressor.classes_,
+                        impurity=False,
+                        feature_names=feature_names)
+
+    graph = pydot.graph_from_dot_data(dot_data.getvalue())
+    graph.write_pdf("tree.pdf") 
+
+    return (test_results, train_results)
+
+
+def forest(train_features, train_labels, test_features, test_labels):
+    regressor = ensemble.RandomForestRegressor(max_depth=5)
+    regressor.fit(train_features, train_labels)
+
+    test_results = cap_results(regressor.predict(test_features))
+    train_results = cap_results(regressor.predict(train_features))
+
+    print "test result", metrics.mean_squared_error(test_labels, test_results)
+    print "test r2", metrics.r2_score(test_labels, test_results)
+    print "train result", metrics.mean_squared_error(train_labels, train_results)
+    print "train r2", metrics.r2_score(train_labels, train_results)
+
+    print "importnaces"
+
+    temp = []
+    for index, val in enumerate(regressor.feature_importances_):
+        if val > 0.001:
+            temp.append((index, val))
+    print sorted(temp, key=lambda x: x[1])
+
+    return (test_results, train_results)
+
 
 def svr(train_features, train_labels, test_features, test_labels):
     """
     Trains a support vector regressor on the given training data
     and then runs it against the test data. Returns the result.
     """
-    rbf_svr = svm.SVR(kernel = "rbf", C = 80e3, gamma = "auto")
-    rbf_svr.fit(train_features, train_labels)
-    test_results = rbf_svr.predict(test_features)
-    return test_results
+    rbf_svr = svm.SVR()
+    search_params = {'kernel':['rbf'], 'C':[1, 10, 100, 1000], 'gamma': [0.000001, 0.0001, 0.01, 1, 10, 100]}
+    svm_cv = grid_search.GridSearchCV(rbf_svr, param_grid=search_params, cv=5, n_jobs=1, verbose=5)
+    svm_cv.fit(train_features, train_labels)
+    print(svm_cv.best_params_)
+
+    test_results = svm_cv.predict(test_features)
+    train_results = svm_cv.predict(train_features)
+    return (test_results, train_results)
+
 
 def linear_regressor(train_features, train_labels, test_features, test_labels):
     """
     Trains a linear regressor on the given training data and then
     runs it against the test data. Returns the result.
     """
-    lr = linear_model.LinearRegression()
+    lr = linear_model.LassoCV(verbose=True, n_jobs=-1)
     lr.fit(train_features, train_labels)
     test_results = cross_val_predict(lr, test_features, test_labels, cv=5)
     test_results[test_results < 0] = 0
     return test_results
+
 
 def partition_data(features, labels):
     """
@@ -57,6 +147,7 @@ def partition_data(features, labels):
 
     return (train_features, train_labels), (test_features, test_labels)
 
+
 def load_data(datafile = DEFAULT_DATA_FILE):
     """
     Loads feature and classification data from the given file.
@@ -65,7 +156,12 @@ def load_data(datafile = DEFAULT_DATA_FILE):
     """
     # Read data
     dataframe = pd.read_csv(datafile)
-    views = dataframe["views"].tolist()
+    views = [ float(x) for x in dataframe["views"].tolist()]
+    favs = [ float(x) for x in dataframe["favorites"].tolist()]
+    ratio = []
+    for i in range(len(views)):
+        ratio.append(favs[i] / views[i])
+    ratio = cap_results(ratio)
 
     # Uncomment this and fix the return line if you want to do 
     # favorites prediction instead
@@ -74,9 +170,24 @@ def load_data(datafile = DEFAULT_DATA_FILE):
     # 5 is the first column after 'favs'.
     # -1 means last column from the end, because I added an extra
     # column for the artist name, which we want to ignore.
-    features = dataframe.iloc[:, 5:-1]
-    features = np.array(features)
-    return features, views
+    dataframe = dataframe.drop("artist", axis=1)
+    dataframe = dataframe.iloc[:, 5:]
+    features = dataframe.values
+
+    # nrows, ncols = features.shape
+    # for r in range(nrows):
+    #     for c in range(ncols):
+    #         if np.isnan(features[r, c]):
+    #             print "r", r, "c", c
+    #             print "val", features[r, c]
+
+    # # interaction terms
+    # poly = PolynomialFeatures(interaction_only=True)
+    # features = poly.fit_transform(features)
+    # print "interaction"
+
+    return features, ratio, dataframe.columns.values
+
 
 def main(args):
     if len(args) == 2 and args[1] == "help":
@@ -90,22 +201,20 @@ def main(args):
 
     # Load data.
     if len(args) > 1:
-        features, labels = load_data(args[1])
+        features, labels, feature_names = load_data(args[1])
     else:
-        features, labels = load_data() # using default features file
+        features, labels, feature_names = load_data()  # using default features file
 
     # Partition into training and test datasets
     (train_features, train_labels), (test_features, test_labels) = partition_data(features, labels)
 
-    # Linear regression
-    test_results = linear_regressor(train_features, train_labels, test_features, test_labels)
-    test_score = compute_score(test_labels, test_results)
-    print "Test score: {}".format(test_score)
+     # Linear regression
+    # test_results, train_results = boost(train_features, train_labels, test_features, test_labels)
+    test_results, train_results = decision_tree(train_features, train_labels, test_features, test_labels, feature_names)
+    # test_results, train_results = forest(train_features, train_labels, test_features, test_labels)
+    # test_results, train_results = svr(train_features, train_labels, test_features, test_labels)
+    # test_results = linear_regressor(train_features, train_labels, test_features, test_labels)
 
-    train_results = linear_regressor(train_features, train_labels, train_features, train_labels)
-    train_score = compute_score(train_labels, train_results)
-    print "Train score: {}".format(train_score)
-    
     # Plot output
     fig, ax = plt.subplots()
     ax.scatter(train_labels, train_results, color="r")
