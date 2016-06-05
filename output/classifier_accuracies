@@ -83,7 +83,7 @@ CONFUSION
 
 
 ===
-Logistic Regression
+Logistic Regression w/ Interaction
 ===
 TESTING RESULTS
 Scores              precision    recall  f1-score   support

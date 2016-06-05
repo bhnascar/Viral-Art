@@ -110,7 +110,7 @@ def plot_colors(hist, centroids):
 
 
 def main():
-    cv_image = cv2.imread("test_data/wonder_woman.jpg")
+    cv_image = cv2.imread("test_data/dot.jpg")
 
     if IS_DEBUG:
         cv_image = cv2.cvtColor(cv_image, cv2.COLOR_BGR2RGB)

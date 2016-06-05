@@ -7,7 +7,7 @@ import imutils
 import util
 import os
 
-IS_DEBUG = False
+IS_DEBUG = True
 NUM_LOC_BINS = 5
 MAX_LOC_VAL = 1
 
@@ -58,9 +58,9 @@ def extractFeature(img):
     img = imutils.resize(img, width=200)
 
     # segment the image
-    # labels = segmentation.felzenszwalb(img, scale=40.0)
-    labels = segmentation.quickshift(img, ratio=1.0, kernel_size=4, max_dist=8)
-    # labels1 = segmentation.slic(img, compactness=15, n_segments=300)
+    labels = segmentation.felzenszwalb(img, scale=35.0)
+    # labels = segmentation.quickshift(img, ratio=1.0, kernel_size=4, max_dist=8)
+    # labels = segmentation.slic(img, compactness=15, n_segments=300)
 
     # get the segmented image
     seg_img = color.label2rgb(labels, img, kind='avg')
@@ -156,17 +156,17 @@ def extractFeature(img):
 
     # plot for debugging
     if IS_DEBUG:
-        plot_marker(cluster_dict[max_sat_label].x,
-                    cluster_dict[max_sat_label].y,
-                    (255, 0, 0), seg_bgr_img)
+        # plot_marker(cluster_dict[max_sat_label].x,
+        #             cluster_dict[max_sat_label].y,
+        #             (255, 0, 0), seg_bgr_img)
 
-        plot_marker(cluster_dict[max_light_label].x,
-                    cluster_dict[max_light_label].y,
-                    (0, 255, 0), seg_bgr_img)
+        # plot_marker(cluster_dict[max_light_label].x,
+        #             cluster_dict[max_light_label].y,
+        #             (0, 255, 0), seg_bgr_img)
 
-        plot_marker(cluster_dict[max_val_label].x,
-                    cluster_dict[max_val_label].y,
-                    (0, 0, 255), seg_bgr_img)
+        # plot_marker(cluster_dict[max_val_label].x,
+        #             cluster_dict[max_val_label].y,
+        #             (0, 0, 255), seg_bgr_img)
 
         plt.figure()
         cv2.imshow('img', seg_bgr_img)
@@ -178,19 +178,31 @@ def extractFeature(img):
 
 
 def main():
-    for filename in os.listdir('test_data/'):
-        path = 'test_data/' + filename
-        if os.path.isdir(path):
-            continue
+    filename = 'warrior.jpg'
+    path = 'test_data/' + filename
 
-        print filename
-        cv_image = cv2.imread(path)
-        if IS_DEBUG:
-            (features, img) = extractFeature(cv_image)
-            print features
-            cv2.imwrite('output/highlights/' + filename, img)
-        else:
-            print extractFeature(cv_image)
+    print filename
+    cv_image = cv2.imread(path)
+    if IS_DEBUG:
+        (features, img) = extractFeature(cv_image)
+        print features
+        cv2.imwrite('output/' + filename, img)
+    else:
+        print extractFeature(cv_image)
+
+    # for filename in os.listdir('test_data/'):
+    #     path = 'test_data/' + filename
+    #     if os.path.isdir(path):
+    #         continue
+
+    #     print filename
+    #     cv_image = cv2.imread(path)
+    #     if IS_DEBUG:
+    #         (features, img) = extractFeature(cv_image)
+    #         print features
+    #         cv2.imwrite('output/' + filename, img)
+    #     else:
+    #         print extractFeature(cv_image)
 
 
 if __name__ == "__main__":

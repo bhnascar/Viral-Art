@@ -123,29 +123,12 @@ def linear_regressor(train_features, train_labels, test_features, test_labels):
     runs it against the test data. Returns the result.
     """
     # lr = linear_model.RANSACRegressor(min_samples=2)
-    # lr = linear_model.RidgeCV()
+    lr = linear_model.RidgeCV()
     # lr = linear_model.LassoCV(verbose=True, n_jobs=-1)
     lr.fit(train_features, train_labels)
     test_results = lr.predict(test_features)
     train_results = lr.predict(train_features)
     return test_results, train_results
-
-
-def partition_data(features, labels):
-    """
-    Partitions the input data into a training and testing dataset.
-    Returns a tuple of tuples:
-    ((train_labels, train_features), 
-     (test_labels, test_features))
-    """
-    # Partition into training and testing datasets (approx. half and half right now)
-    train_labels = labels[:500]
-    train_features = features[:500,:]
-
-    test_labels = labels[500:]
-    test_features = features[500:,:]
-
-    return (train_features, train_labels), (test_features, test_labels)
 
 
 def load_data(datafile = DEFAULT_DATA_FILE):
@@ -174,17 +157,10 @@ def load_data(datafile = DEFAULT_DATA_FILE):
     dataframe = dataframe.iloc[:, 5:]
     features = dataframe.values
 
-    # nrows, ncols = features.shape
-    # for r in range(nrows):
-    #     for c in range(ncols):
-    #         if np.isnan(features[r, c]):
-    #             print "r", r, "c", c
-    #             print "val", features[r, c]
-
     # # interaction terms
-    # poly = PolynomialFeatures(interaction_only=True)
-    # features = poly.fit_transform(features)
-    # print "interaction"
+    poly = PolynomialFeatures(interaction_only=True)
+    features = poly.fit_transform(features)
+    print "interaction"
 
     return features, ratio, dataframe.columns.values
 
@@ -212,8 +188,10 @@ def main(args):
     # test_results, train_results = boost(train_features, train_labels, test_features, test_labels)
     # test_results, train_results = decision_tree(train_features, train_labels, test_features, test_labels, feature_names)
     # test_results, train_results = forest(train_features, train_labels, test_features, test_labels)
-    test_results, train_results = svr(train_features, train_labels, test_features, test_labels)
-    # test_results, train_results = linear_regressor(train_features, train_labels, test_features, test_labels)
+    # test_results, train_results = svr(train_features, train_labels, test_features, test_labels)
+    test_results, train_results = linear_regressor(train_features, train_labels, test_features, test_labels)
+    test_results = cap_results(test_results)
+    train_results = cap_results(train_results)
 
     print "test result", metrics.mean_squared_error(test_labels, test_results)
     print "test r2", metrics.r2_score(test_labels, test_results)
@@ -231,6 +209,7 @@ def main(args):
     # Label axes
     ax.set_xlabel('Measured')
     ax.set_ylabel('Predicted')
+    plt.title("RANSAC")
 
     plt.show()
 

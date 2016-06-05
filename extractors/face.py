@@ -21,7 +21,7 @@ import imutils
 import numpy as np
 import os
 
-IS_DEBUG = False
+IS_DEBUG = True
 NUM_LOC_BINS = 5
 MAX_LOC_VAL = 1
 

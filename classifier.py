@@ -14,6 +14,7 @@ from sklearn import metrics
 from sklearn import linear_model
 from sklearn.feature_selection import RFE
 from sklearn.cross_validation import cross_val_predict
+from sklearn.preprocessing import PolynomialFeatures
 from sklearn.naive_bayes import GaussianNB
 
 DEFAULT_DATA_FILE = "output/features.txt"
@@ -136,6 +137,11 @@ def load_data(datafile):
     dataframe = dataframe.iloc[:, 5:]
     features = dataframe.values
 
+    # interaction terms
+    poly = PolynomialFeatures(interaction_only=True)
+    features = poly.fit_transform(features)
+    print "interaction"
+
     return features, artists, urls
 
 
@@ -157,9 +163,9 @@ def main(args):
     (train_urls, train_labels, train_features), (test_urls, test_labels, test_features) = partition_data_for_artist(args[1], features, labels, urls)
 
     # test_results, train_results = logistic(train_features, train_labels, test_features, test_labels)
-    # test_results, train_results = forest(train_features, train_labels, test_features, test_labels)
+    test_results, train_results = forest(train_features, train_labels, test_features, test_labels)
     # test_results, train_results = naive_bayes(train_features, train_labels, test_features, test_labels)
-    test_results, train_results = svc(train_features, train_labels, test_features, test_labels)
+    # test_results, train_results = svc(train_features, train_labels, test_features, test_labels)
 
     tp = []
     fp = []

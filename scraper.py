@@ -1,3 +1,5 @@
+
+
 #!/usr/bin/env python
 
 import sys
@@ -51,6 +53,7 @@ def write_img_to_db(conn, cur, img):
                 """.format(img.artist, img.views, img.favs, img.is_traditional, img.is_digital, rows[0][0]);
     cur.execute(query)
     conn.commit()
+
 
 def update_img_metadata(conn, cur):
     """
