@@ -148,7 +148,7 @@ def load_data(datafile):
 def main(args):
     if len(args) == 2 and args[1] == "help":
         print """
-              Usage: ./predictor.py [deviantART username] [features file]\n
+              Usage: ./classifier.py [deviantART username] [features file]\n
               Currently you can try 'yuumei' and 'Namecchan' since these
               users have ~30 pictures each in our database of a 1000.
               """
