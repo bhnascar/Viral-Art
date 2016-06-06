@@ -168,7 +168,7 @@ def load_data(datafile = DEFAULT_DATA_FILE):
 def main(args):
     if len(args) == 2 and args[1] == "help":
         print """
-              Usage: ./learner.py [features file]
+              Usage: ./regressor.py [features file]
               """
         return
     elif len(args) < 1:
